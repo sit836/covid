@@ -55,12 +55,17 @@ def plot_feature_importance(rf, X):
 
 file_fitting_results = "data_fitting_results.csv"
 file_latest_combined_proc = "OxCGRT_latest_combined_proc.csv"
-X, diff = generate_xy(file_fitting_results, file_latest_combined_proc)
+X, y = generate_xy(file_fitting_results, file_latest_combined_proc)
+
 print("Shape of data: ", X.shape)
+print("The sample size is less than the number of features. \
+The classical linear model can not be directly applied here.")
 
-opt_rf = search_opt_model(X, diff)
-pred = fit_predict(opt_rf, X, diff)
-print("mean_squared_error: ", mean_squared_error(diff, pred))
+opt_rf = search_opt_model(X, y)
+pred_rf = fit_predict(opt_rf, X, y)
+print("mean_squared_error: ", mean_squared_error(y, pred_rf))
 
-plot_pred2actual(diff, pred)
-plot_feature_importance(opt_rf, X)
+# plot_pred2actual(diff, pred_rf)
+# plot_feature_importance(opt_rf, X)
+
+# TODO: lasso benchmark
