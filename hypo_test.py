@@ -13,12 +13,15 @@ def diagnostic_plots(rate_0, rate_e):
     sns.distplot(df['R0'], kde=False, ax=axs[0, 0], label="R0")
     sns.distplot(df['RE'], kde=False, ax=axs[0, 0], label="RE")
     axs[0, 0].set(xlabel=None)
+    axs[0, 0].set_title("Histogram of Growth Rates")
     axs[0, 0].legend()
 
     sns.distplot(diff, kde=False, ax=axs[0, 1])
-    axs[0, 1].set_title("Difference")
+    axs[0, 1].set_title("Histogram of Difference")
 
     sns.boxplot(data=df[['R0', 'RE']], showfliers=False, orient='v', ax=axs[1, 0])
+    axs[1, 0].set_title("Boxplot of Growth Rates")
+
     stats.probplot(diff, dist="norm", plot=axs[1, 1])
     axs[1, 1].set_title("Probability Plot of Difference")
 

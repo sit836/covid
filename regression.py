@@ -33,15 +33,6 @@ def fit_predict(model, X, diff):
     return model.predict(X)
 
 
-def plot_pred2actual(actual, pred):
-    plt.scatter(actual, pred)
-    plt.axline([0, 0], [1, 1])
-    plt.axis('equal')
-    plt.xlabel("Difference")
-    plt.ylabel("Prediction")
-    plt.show()
-
-
 def plot_feature_importance(rf, X):
     num_top_features = 10
     feature_importances = pd.DataFrame(rf.feature_importances_, index=X.columns, columns=["Importance"])
@@ -66,8 +57,6 @@ rf = RandomForestRegressor(n_estimators=30, max_features="sqrt", random_state=0)
 opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [2, 3, 4, 5, 6, 7]})
 pred_rf = fit_predict(opt_rf, X, y)
 print("rf mean_squared_error: ", mean_squared_error(y, pred_rf))
-
-# plot_pred2actual(y, pred_rf)
 # plot_feature_importance(opt_rf, X)
 
 # LASSO
@@ -77,7 +66,15 @@ opt_lasso = search_opt_model(X_scaled, y, lasso, param_grid={'alpha': [0.05, 0.1
 opt_lasso.fit(X_scaled, y)
 pred_lasso = opt_lasso.predict(X_scaled)
 print("lasso mean_squared_error: ", mean_squared_error(y, pred_lasso))
-# plot_pred2actual(y, pred_lasso)
+
+sns.scatterplot(y, pred_rf, label="Random Forest")
+sns.scatterplot(y, pred_lasso, label="LASSO", marker="D")
+plt.axline([0, 0], [1, 1], ls="--")
+plt.axis('equal')
+plt.xlabel("Difference")
+plt.ylabel("Prediction")
+plt.legend()
+plt.show()
 
 # #
 # import shap
