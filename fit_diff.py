@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from sklearn import linear_model
+from sklearn import preprocessing
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
@@ -19,10 +21,8 @@ def generate_xy(file_fitting_results, file_latest_combined_proc):
     return X, diff
 
 
-def search_opt_model(X, y):
-    param_grid = {'max_depth': [2, 3, 4, 5, 6, 7]}
-    rf = RandomForestRegressor(n_estimators=30, max_features="sqrt", random_state=0)
-    regressor = GridSearchCV(rf, param_grid, cv=10)
+def search_opt_model(X, y, model, param_grid):
+    regressor = GridSearchCV(model, param_grid, cv=10)
     regressor.fit(X, y)
     print(regressor.best_estimator_)
     return regressor.best_estimator_
@@ -61,11 +61,30 @@ print("Shape of data: ", X.shape)
 print("The sample size is less than the number of features. \
 The classical linear model can not be directly applied here.")
 
-opt_rf = search_opt_model(X, y)
+# Random Forest
+rf = RandomForestRegressor(n_estimators=30, max_features="sqrt", random_state=0)
+opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [2, 3, 4, 5, 6, 7]})
 pred_rf = fit_predict(opt_rf, X, y)
-print("mean_squared_error: ", mean_squared_error(y, pred_rf))
+print("rf mean_squared_error: ", mean_squared_error(y, pred_rf))
 
-# plot_pred2actual(diff, pred_rf)
+# plot_pred2actual(y, pred_rf)
 # plot_feature_importance(opt_rf, X)
 
-# TODO: lasso benchmark
+# LASSO
+X_scaled = preprocessing.scale(X)
+lasso = linear_model.Lasso(alpha=0.1)
+opt_lasso = search_opt_model(X_scaled, y, lasso, param_grid={'alpha': [0.05, 0.1, 0.15]})
+opt_lasso.fit(X_scaled, y)
+pred_lasso = opt_lasso.predict(X_scaled)
+print("lasso mean_squared_error: ", mean_squared_error(y, pred_lasso))
+# plot_pred2actual(y, pred_lasso)
+
+# #
+# import shap
+#
+# explainer = shap.TreeExplainer(opt_rf)
+# shap_values = explainer.shap_values(X)
+#
+# # visualize the first prediction's explanation
+# shap.force_plot(explainer.expected_value, shap_values[0, :], X.iloc[0, :], matplotlib=True)
+# plt.show()
