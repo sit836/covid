@@ -2,7 +2,7 @@ import itertools
 
 import pandas as pd
 
-from config import path
+from config import in_path
 
 
 def get_selected_cols(df):
@@ -49,7 +49,7 @@ def process_data(df):
 
 
 def process_world_pop(world_pop_name, year=2020):
-    df_raw = pd.read_csv(path + world_pop_name + ".csv")
+    df_raw = pd.read_csv(in_path + world_pop_name + ".csv")
     return df_raw.loc[(df_raw["Time"] == year) & (df_raw["Variant"] == "Medium"), ["Location", "PopTotal"]]
 
 
@@ -64,7 +64,7 @@ def create_features(df):
 
 file_name = "OxCGRT_latest_combined"
 world_pop_name = "WPP2019_TotalPopulationBySex"
-df_raw = pd.read_csv(path + file_name + ".csv", low_memory=False)
+df_raw = pd.read_csv(in_path + file_name + ".csv", low_memory=False)
 
 selected_col_names = get_selected_cols(df_raw)
 df_raw = df_raw[selected_col_names]
@@ -75,4 +75,4 @@ df_merged = df_proc.merge(df_world_pop, left_on="CountryName", right_on="Locatio
 create_features(df_merged)
 
 result_df = df_merged.drop(columns=["Location", "ConfirmedCases", "ConfirmedDeaths", "PopTotal"])
-result_df.to_csv(path + file_name + "_proc.csv", index=False)
+result_df.to_csv(in_path + file_name + "_proc.csv", index=False)

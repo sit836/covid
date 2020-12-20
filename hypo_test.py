@@ -3,7 +3,7 @@ import pandas as pd
 import scipy.stats as stats
 import seaborn as sns
 
-from config import path
+from config import in_path
 
 
 def diagnostic_plots(rate_0, rate_e):
@@ -28,7 +28,7 @@ def diagnostic_plots(rate_0, rate_e):
     plt.show()
 
 
-df = pd.read_csv(path + "data_fitting_results.csv")
+df = pd.read_csv(in_path + "data_fitting_results.csv")
 rate_0, rate_e = df["R0"], df["RE"]
 
 print(min(df["R0"]), min(df["RE"]))
