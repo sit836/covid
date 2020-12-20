@@ -1,13 +1,12 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-from sklearn import linear_model
-from sklearn import preprocessing
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
 
 from config import path
+from utils import dropcol_importances
 
 
 def generate_xy(file_fitting_results, file_latest_combined_proc):
@@ -33,12 +32,10 @@ def fit_predict(model, X, diff):
     return model.predict(X)
 
 
-def plot_feature_importance(rf, X):
-    num_top_features = 10
-    feature_importances = pd.DataFrame(rf.feature_importances_, index=X.columns, columns=["Importance"])
+def plot_feature_importance(rf, X, y, num_top_features=10):
+    feature_importances = dropcol_importances(rf, X, y)
     feature_importances.sort_values(by='Importance', ascending=False, inplace=True)
     feature_importances = feature_importances.iloc[:num_top_features, :]
-
     sns.barplot(x=feature_importances["Importance"].values, y=feature_importances.index)
     plt.title(f"Feature Importance (Top {num_top_features})")
     plt.show()
@@ -53,28 +50,28 @@ print("The sample size is less than the number of features. \
 The classical linear model can not be directly applied here.")
 
 # Random Forest
-rf = RandomForestRegressor(n_estimators=30, max_features="sqrt", random_state=0)
+rf = RandomForestRegressor(n_estimators=100, max_features="sqrt", oob_score=True, random_state=0)
 opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [2, 3, 4, 5, 6, 7]})
 pred_rf = fit_predict(opt_rf, X, y)
 print("rf mean_squared_error: ", mean_squared_error(y, pred_rf))
-# plot_feature_importance(opt_rf, X)
+plot_feature_importance(opt_rf, X, y)
 
-# LASSO
-X_scaled = preprocessing.scale(X)
-lasso = linear_model.Lasso(alpha=0.1)
-opt_lasso = search_opt_model(X_scaled, y, lasso, param_grid={'alpha': [0.05, 0.1, 0.15]})
-opt_lasso.fit(X_scaled, y)
-pred_lasso = opt_lasso.predict(X_scaled)
-print("lasso mean_squared_error: ", mean_squared_error(y, pred_lasso))
-
-sns.scatterplot(y, pred_rf, label="Random Forest")
-sns.scatterplot(y, pred_lasso, label="LASSO", marker="D")
-plt.axline([0, 0], [1, 1], ls="--")
-plt.axis('equal')
-plt.xlabel("Difference")
-plt.ylabel("Prediction")
-plt.legend()
-plt.show()
+# # LASSO
+# X_scaled = preprocessing.scale(X)
+# lasso = linear_model.Lasso()
+# opt_lasso = search_opt_model(X_scaled, y, lasso, param_grid={'alpha': [0.05, 0.1, 0.15]})
+# opt_lasso.fit(X_scaled, y)
+# pred_lasso = opt_lasso.predict(X_scaled)
+# print("lasso mean_squared_error: ", mean_squared_error(y, pred_lasso))
+#
+# sns.scatterplot(y, pred_rf, label="Random Forest")
+# sns.scatterplot(y, pred_lasso, label="LASSO", marker="D")
+# plt.axline([0, 0], [1, 1], ls="--")
+# plt.axis('equal')
+# plt.xlabel("Difference")
+# plt.ylabel("Prediction")
+# plt.legend()
+# plt.show()
 
 # #
 # import shap
