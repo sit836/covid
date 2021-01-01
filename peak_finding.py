@@ -41,7 +41,9 @@ def get_tail_peaks(cases_smoothed, peaks, tail_length=10):
     return peaks
 
 
-def process(df, height_threshold=0.20, prominence_threshold=0.10, distance=60, window_width=28):
+def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, distance=60, window_width=28, generate_plot=False):
+    result = {}
+
     for country in tqdm(df["Entity"].unique()):
         df_i = df[(df["Entity"] == country) & (df["Days_30"] >= 0)]
 
@@ -53,8 +55,16 @@ def process(df, height_threshold=0.20, prominence_threshold=0.10, distance=60, w
             bottoms, _ = find_peaks((-1) * cases_smoothed, distance=distance,
                                     prominence=np.quantile(df_i["cases"].round().unique(), prominence_threshold))
             peaks = get_tail_peaks(cases_smoothed, peaks)
-            make_plot(df_i, country, peaks, bottoms, cases_smoothed)
+
+            if generate_plot:
+                make_plot(df_i, country, peaks, bottoms, cases_smoothed)
+
+            result[country] = {}
+            result[country]["peak_date"] = df_i["Date"].iloc[peaks].tolist()
+            result[country]["bottom_date"] = df_i["Date"].iloc[bottoms].tolist()
+    return result
 
 
 df = pd.read_csv(in_path + "cases.csv")
-process(df)
+result = get_peaks_and_bottoms(df)
+print(result)
