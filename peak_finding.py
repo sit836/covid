@@ -65,6 +65,6 @@ def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, 
     return result
 
 
-df = pd.read_csv(in_path + "cases.csv")
-result = get_peaks_and_bottoms(df)
-print(result)
+if __name__ == "__main__":
+    df = pd.read_csv(in_path + "cases.csv")
+    result = get_peaks_and_bottoms(df)

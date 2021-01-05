@@ -11,6 +11,7 @@ from sklearn import linear_model
 from config import in_path, out_path
 from utils import dropcol_importances
 
+
 def generate_xy(file_fitting_results, file_latest_combined_proc):
     df_fitting_results = pd.read_csv(in_path + file_fitting_results)
     X_raw = pd.read_csv(in_path + file_latest_combined_proc)
