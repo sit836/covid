@@ -1,6 +1,7 @@
 import pandas as pd
 
 from config import in_path
+from peak_finding import get_peaks_and_bottoms
 
 
 def get_2020_data(df):
@@ -30,3 +31,9 @@ def get_temperature():
     df_raw = pd.read_csv(in_path + "tas_2020_2039_mavg_rcp60.csv")
     df_raw["Month"] = df_raw["Statistics"].str.split(" ", n=1, expand=True)[0]
     return get_annual_avg_temp(get_2020_data(df_raw))
+
+
+df_temperature = get_temperature()
+df_cases = pd.read_csv(in_path + "cases.csv")
+peaks_and_bottoms_dict = get_peaks_and_bottoms(df_cases)
+print(peaks_and_bottoms_dict)

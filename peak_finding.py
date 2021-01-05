@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -60,11 +62,36 @@ def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, 
                 make_plot(df_i, country, peaks, bottoms, cases_smoothed)
 
             result[country] = {}
+            result[country]["start_date"] = df_i.loc[df_i["Days_30"] == 0, "Date"].tolist()
             result[country]["peak_date"] = df_i["Date"].iloc[peaks].tolist()
             result[country]["bottom_date"] = df_i["Date"].iloc[bottoms].tolist()
     return result
 
 
+def get_1st_2nd_waves(peaks_and_bottoms_dict):
+    result = {}
+
+    for country in peaks_and_bottoms_dict:
+        peaks_raw, bottoms_raw = peaks_and_bottoms_dict[country]["peak_date"], peaks_and_bottoms_dict[country][
+            "bottom_date"]
+        peaks, bottoms = np.array([datetime.strptime(p, "%Y-%m-%d") for p in peaks_raw]), np.array(
+            [datetime.strptime(b, "%Y-%m-%d") for b in bottoms_raw])
+
+        result[country] = {}
+        result[country]["1st_start"] = peaks_and_bottoms_dict[country]["start_date"][0]
+
+        if len(peaks):
+            result[country]["1st_end"] = peaks_raw[0]
+        else:
+            result[country]["1st_end"] = None
+
+        if (len(bottoms) > 0) and (len(peaks) > 1):
+            result[country]["2nd_start"] = bottoms_raw[np.argmax(bottoms > peaks[0])]
+            result[country]["2nd_end"] = peaks_raw[1]
+    return result
+
+
 if __name__ == "__main__":
     df = pd.read_csv(in_path + "cases.csv")
-    result = get_peaks_and_bottoms(df)
+    peaks_and_bottoms_dict = get_peaks_and_bottoms(df)
+    waves_dict = get_1st_2nd_waves(peaks_and_bottoms_dict)
