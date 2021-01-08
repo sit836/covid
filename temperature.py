@@ -1,7 +1,7 @@
 import pandas as pd
 
 from config import in_path
-from peak_finding import get_peaks_and_bottoms
+from peak_finding import get_1st_2nd_waves
 
 
 def get_2020_data(df):
@@ -18,22 +18,32 @@ def get_2020_data(df):
     return df_2020
 
 
-def get_annual_avg_temp(df):
-    result = {"country": [], "avg_temp":[]}
+def get_temp(df_temp, df_waves):
+    result_df = pd.DataFrame(columns=['country', 'temp_1st_wave', 'temp_2nd_wave'])
+    common_countries = list(set(df_temp["Country"].unique()).intersection(df_waves["country"].unique()))
 
-    for country in df["Country"].unique():
-            result["country"].append(country)
-            result["avg_temp"].append(df.loc[df["Country"] == country, "Monthly Temperature - (Celsius)"].mean())
-    return pd.DataFrame.from_dict(result)
+    for country in common_countries:
+        df_temp_i = df_temp.loc[df_temp["Country"] == country, "Monthly Temperature - (Celsius)"]
+        df_waves_i = df_waves[df_waves["country"] == country]
+
+        if df_waves_i.squeeze().str.contains("00-00-00").sum() == 0:
+            temp_1st_wave = df_temp_i.iloc[(df_waves_i["1st_start_month"].iloc[0]-1):(df_waves_i["1st_end_month"].iloc[0])].mean()
+            temp_2nd_wave = df_temp_i.iloc[(df_waves_i["2nd_start_month"].iloc[0]-1):(df_waves_i["2nd_end_month"].iloc[0])].mean()
+            result_df = result_df.append({"country": country, "temp_1st_wave": temp_1st_wave, "temp_2nd_wave": temp_2nd_wave}, ignore_index=True)
+    return result_df
 
 
-def get_temperature():
-    df_raw = pd.read_csv(in_path + "tas_2020_2039_mavg_rcp60.csv")
-    df_raw["Month"] = df_raw["Statistics"].str.split(" ", n=1, expand=True)[0]
-    return get_annual_avg_temp(get_2020_data(df_raw))
+def append_months(waves_df):
+    for col in waves_df.filter(like="_").columns:
+        waves_df[f"{col}_month"] = waves_df[col].str.split("-", n=2, expand=True)[1].astype(int)
 
 
-df_temperature = get_temperature()
 df_cases = pd.read_csv(in_path + "cases.csv")
-peaks_and_bottoms_dict = get_peaks_and_bottoms(df_cases)
-print(peaks_and_bottoms_dict)
+df_waves = get_1st_2nd_waves(df_cases)
+append_months(df_waves)
+
+df_temp = pd.read_csv(in_path + "tas_2020_2039_mavg_rcp60.csv")
+df_temp["Month"] = df_temp["Statistics"].str.split(" ", n=1, expand=True)[0]
+
+df_temp_new = get_temp(df_temp, df_waves)
+print(df_temp_new.head())

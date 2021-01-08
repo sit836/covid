@@ -68,30 +68,35 @@ def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, 
     return result
 
 
-def get_1st_2nd_waves(peaks_and_bottoms_dict):
-    result = {}
+def get_1st_2nd_waves(df):
+    result_df = pd.DataFrame(columns=['country', '1st_start', '1st_end', '2nd_start', '2nd_end'])
+    peaks_and_bottoms_dict = get_peaks_and_bottoms(df)
 
-    for country in peaks_and_bottoms_dict:
+    for i, country in enumerate(peaks_and_bottoms_dict):
         peaks_raw, bottoms_raw = peaks_and_bottoms_dict[country]["peak_date"], peaks_and_bottoms_dict[country][
             "bottom_date"]
         peaks, bottoms = np.array([datetime.strptime(p, "%Y-%m-%d") for p in peaks_raw]), np.array(
             [datetime.strptime(b, "%Y-%m-%d") for b in bottoms_raw])
 
-        result[country] = {}
-        result[country]["1st_start"] = peaks_and_bottoms_dict[country]["start_date"][0]
-
         if len(peaks):
-            result[country]["1st_end"] = peaks_raw[0]
+            first_end = peaks_raw[0]
         else:
-            result[country]["1st_end"] = None
+            first_end = "00-00-00"
 
         if (len(bottoms) > 0) and (len(peaks) > 1):
-            result[country]["2nd_start"] = bottoms_raw[np.argmax(bottoms > peaks[0])]
-            result[country]["2nd_end"] = peaks_raw[1]
-    return result
+            second_start = bottoms_raw[np.argmax(bottoms > peaks[0])]
+            second_end = peaks_raw[1]
+        else:
+            second_start = "00-00-00"
+            second_end = "00-00-00"
+
+        result_df = result_df.append(
+            {"country": country, "1st_start": peaks_and_bottoms_dict[country]["start_date"][0], "1st_end": first_end,
+             "2nd_start": second_start, "2nd_end": second_end}, ignore_index=True)
+    return result_df
 
 
 if __name__ == "__main__":
     df = pd.read_csv(in_path + "cases.csv")
-    peaks_and_bottoms_dict = get_peaks_and_bottoms(df)
-    waves_dict = get_1st_2nd_waves(peaks_and_bottoms_dict)
+    df_waves = get_1st_2nd_waves(df)
+    print(df_waves.head())
