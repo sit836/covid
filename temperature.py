@@ -42,8 +42,9 @@ df_cases = pd.read_csv(in_path + "cases.csv")
 df_waves = get_1st_2nd_waves(df_cases)
 append_months(df_waves)
 
-df_temp = pd.read_csv(in_path + "tas_2020_2039_mavg_rcp60.csv")
-df_temp["Month"] = df_temp["Statistics"].str.split(" ", n=1, expand=True)[0]
+df_temp_raw = pd.read_csv(in_path + "tas_2020_2039_mavg_rcp60.csv")
+df_temp_raw["Month"] = df_temp_raw["Statistics"].str.split(" ", n=1, expand=True)[0]
 
-df_temp_new = get_temp(df_temp, df_waves)
-print(df_temp_new.head())
+df_temp = get_temp(df_temp_raw, df_waves)
+print(df_temp.shape)
+print(df_temp.head())
