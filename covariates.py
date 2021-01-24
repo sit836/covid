@@ -13,4 +13,5 @@ def get_covariates(df, col_names):
 
 if __name__ == "__main__":
     df = pd.read_csv(in_path + "covid_dec.csv")
-    col_names = ["population", "gdp_per_capita"]
+    col_names = ["location", "population", "gdp_per_capita"]
+    print(get_covariates(df, col_names).head())

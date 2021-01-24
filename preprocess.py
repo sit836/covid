@@ -3,6 +3,7 @@ import itertools
 import pandas as pd
 
 from config import in_path
+from covariates import get_covariates
 
 
 def get_selected_cols(df):
@@ -50,7 +51,7 @@ def process_data(df):
 
 def process_world_pop(world_pop_name, year=2020):
     df_raw = pd.read_csv(in_path + world_pop_name + ".csv")
-    return df_raw.loc[(df_raw["Time"] == year) & (df_raw["Variant"] == "Medium"), ["Location", "PopTotal"]]
+    return df_raw.loc[(df_raw["Time"] == year) & (df_raw["Variant"] == "Medium"), ["Location", "population"]]
 
 
 def create_features(df):
@@ -59,7 +60,7 @@ def create_features(df):
     df_sub = df[is_confirm_cases_pos]
     df.loc[is_confirm_cases_pos, "FatalityRate"] = df_sub["ConfirmedDeaths"] / df_sub["ConfirmedCases"]
 
-    df["InfectionRate"] = df["ConfirmedCases"] / df["PopTotal"]
+    df["InfectionRate"] = df["ConfirmedCases"] / df["population"]
 
 
 if __name__ == "__main__":
@@ -71,9 +72,12 @@ if __name__ == "__main__":
     df_raw = df_raw[selected_col_names]
     df_proc = process_data(df_raw)
 
-    df_world_pop = process_world_pop(world_pop_name)
-    df_merged = df_proc.merge(df_world_pop, left_on="CountryName", right_on="Location")
+    # df_world_pop = process_world_pop(world_pop_name)
+    covid_dec_df = pd.read_csv(in_path + "covid_dec.csv")
+    df_world_pop = get_covariates(covid_dec_df, col_names=["location", "population"])
+
+    df_merged = df_proc.merge(df_world_pop, left_on="CountryName", right_on="location")
     create_features(df_merged)
 
-    result_df = df_merged.drop(columns=["Location", "ConfirmedCases", "ConfirmedDeaths", "PopTotal"])
+    result_df = df_merged.drop(columns=["location", "ConfirmedCases", "ConfirmedDeaths", "population"])
     result_df.to_csv(in_path + file_name + "_proc.csv", index=False)
