@@ -3,15 +3,19 @@ import pandas as pd
 from config import in_path
 
 
-def get_covariates(df, col_names):
+def get_covariates():
+    df = pd.read_csv(in_path + "covid_dec.csv")
+    df = df[(df["location"] != "International") & (df["location"] != "World")]
+
+    pivot_idx = 36
+    features_to_remove = ["population", "extreme_poverty", "female_smokers", "male_smokers", "handwashing_facilities",
+                          "hospital_beds_per_thousand"]
+    col_names = list(set(df.iloc[:, pivot_idx:].columns).difference(features_to_remove)) + ["location", "continent"]
+
     result_df = pd.DataFrame(columns=col_names)
     for country in df["location"].unique():
         df_i = df.loc[df["location"] == country, col_names]
         result_df = result_df.append(dict(zip(col_names, df_i.iloc[0, :])), ignore_index=True)
-    return result_df
 
-
-if __name__ == "__main__":
-    df = pd.read_csv(in_path + "covid_dec.csv")
-    col_names = ["location", "population", "gdp_per_capita"]
-    print(get_covariates(df, col_names).head())
+    continent_enc = pd.get_dummies(result_df["continent"], prefix="continent")
+    return pd.concat([result_df.drop(columns=["continent"]), continent_enc], axis=1)
