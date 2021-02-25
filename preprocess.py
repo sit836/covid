@@ -65,16 +65,14 @@ def create_features(df):
 
 if __name__ == "__main__":
     file_name = "OxCGRT_latest_combined"
-    world_pop_name = "WPP2019_TotalPopulationBySex"
     df_raw = pd.read_csv(in_path + file_name + ".csv", low_memory=False)
 
     selected_col_names = get_selected_cols(df_raw)
     df_raw = df_raw[selected_col_names]
     df_proc = process_data(df_raw)
 
-    # df_world_pop = process_world_pop(world_pop_name)
     covid_dec_df = pd.read_csv(in_path + "covid_dec.csv")
-    df_world_pop = get_covariates(covid_dec_df, col_names=["location", "population"])
+    df_world_pop = get_covariates()
 
     df_merged = df_proc.merge(df_world_pop, left_on="CountryName", right_on="location")
     create_features(df_merged)
