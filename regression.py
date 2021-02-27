@@ -36,12 +36,12 @@ def fit_predict(model, X, diff):
     return model.predict(X)
 
 
-def plot_feature_importance(rf, X, y, num_top_features=10):
+def plot_feature_importances(rf, X, y, num_top_features=10):
     feature_importances = dropcol_importances(rf, X, y)
     feature_importances.sort_values(by='Importance', ascending=False, inplace=True)
     feature_importances = feature_importances.iloc[:num_top_features, :]
     sns.barplot(x=feature_importances["Importance"].values, y=feature_importances.index)
-    plt.title(f"Feature Importance (Top {num_top_features})")
+    plt.title(f"Feature Importances (Top {num_top_features})")
     plt.show()
 
 
@@ -67,7 +67,7 @@ mse_rf = mean_squared_error(y, pred_rf)
 r2_rf = opt_rf.score(X, y)
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
-plot_feature_importance(opt_rf, X, y)
+plot_feature_importances(opt_rf, X, y)
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 
 sns.scatterplot(y, pred_rf, label="Random Forest")

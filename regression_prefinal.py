@@ -33,7 +33,8 @@ def generate_xy(df):
                       'carry capacity 2nd wave', 'R squared 2nd wave', 'RE',
                       'Initial cases-2nd wave', 'Expected RE', 'Country', 'Cases _CumTotal',
                       'Cases - Cum_per_millionPop', 'Cases _newly_reported_last_7days', 'Valid', 'temp_2nd_wave',
-                      'prec_2nd_wave']
+                      'prec_2nd_wave', 'Total_population', 'Deaths_newly_reported_last_7days', 'Deaths _ CumTotal']
+    df['Deaths_newly_reported_last_7days_div_CumTotal'] = df['Deaths_newly_reported_last_7days'] / df['Deaths _ CumTotal']
     return df.drop(columns=cols_to_remove), df['R0']
 
 
@@ -49,12 +50,12 @@ def fit_predict(model, X, diff):
     return model.predict(X)
 
 
-def plot_feature_importance(rf, X, y, num_top_features=10):
+def plot_feature_importances(rf, X, y, num_top_features=10):
     feature_importances = dropcol_importances(rf, X, y)
     feature_importances.sort_values(by='Importance', ascending=False, inplace=True)
     feature_importances = feature_importances.iloc[:num_top_features, :]
     sns.barplot(x=feature_importances["Importance"].values, y=feature_importances.index)
-    plt.title(f"Feature Importance (Top {num_top_features})")
+    plt.title(f"Feature Importances (Top {num_top_features})")
     plt.show()
 
 
@@ -79,6 +80,8 @@ cat_cols = ['ISO', 'Continent', 'WHO_region', 'Transmission_Classification']
 encode_cat_features(df, cat_cols)
 X, y = generate_xy(df)
 
+print(X.columns)
+
 # OLS
 lr = LinearRegression(fit_intercept=False).fit(X, y)
 pred_ols = lr.predict(X)
@@ -94,7 +97,7 @@ r2_rf = opt_rf.score(X, y)
 print(r2_score(y, pred_rf))
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
-plot_feature_importance(opt_rf, X, y)
+plot_feature_importances(opt_rf, X, y)
 plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 
 # sns.scatterplot(y, pred_rf, label="Random Forest")
