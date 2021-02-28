@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
-import shap
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
@@ -9,7 +8,7 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
 
 from config import in_path, out_path
-from utils import dropcol_importances
+from utils import plot_feature_importances, plot_shap_force_plot, plot_Friedman_partial_dependence, plot_pred_scatter, plot_heatmap
 from temp_prec import add_temp_prec
 
 
@@ -42,27 +41,6 @@ def fit_predict(model, X, diff):
     return model.predict(X)
 
 
-def plot_feature_importances(rf, X, y, num_top_features=10):
-    feature_importances = dropcol_importances(rf, X, y)
-    feature_importances.sort_values(by='Importance', ascending=False, inplace=True)
-    feature_importances = feature_importances.iloc[:num_top_features, :]
-    sns.barplot(x=feature_importances["Importance"].values, y=feature_importances.index)
-    plt.title(f"Feature Importances (Top {num_top_features})")
-    plt.show()
-
-
-def plot_shap_force_plot(model, X, country_name, out_path):
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X)
-
-    row_idx = X.index.get_loc(country_name)
-    fig = shap.force_plot(explainer.expected_value, shap_values[row_idx, :], X.iloc[row_idx, :], show=False,
-                          matplotlib=True, text_rotation=-15)
-    country_name = X.index[row_idx]
-    plt.title(country_name, y=-0.01)
-    fig.savefig(out_path + f"SHAP_{country_name}.png")
-
-
 cat_cols = ['ISO', 'Continent', 'WHO_region', 'Transmission_Classification']
 cols_to_remove = ['country', 'growth_rate 1st wave', 'carry capacity 1st wave',
                   'R squared 1st wave', 'R0', 'growth_rate 2nd wave',
@@ -82,7 +60,7 @@ mse_ols = mean_squared_error(y, pred_ols)
 r2_ols = r2_score(y, pred_ols)
 
 # Random Forest
-rf = RandomForestRegressor(n_estimators=256, max_features="sqrt", oob_score=True, random_state=0)
+rf = RandomForestRegressor(n_estimators=300, max_features="sqrt", oob_score=True, random_state=0)
 opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [6, 8, 10]})
 pred_rf = fit_predict(opt_rf, X, y)
 mse_rf = mean_squared_error(y, pred_rf)
@@ -94,5 +72,11 @@ print("R^2 for for random forest: ", r2_rf)
 print(X.columns)
 print(X.shape)
 
-plot_feature_importances(opt_rf, X, y, num_top_features=15)
-plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
+top_features = plot_feature_importances(opt_rf, X, y, num_top_features=10)
+
+# plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
+
+plot_heatmap(X[top_features])
+plot_Friedman_partial_dependence(opt_rf, top_features, X)
+
+# plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols)
