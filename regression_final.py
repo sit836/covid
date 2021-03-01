@@ -8,7 +8,7 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
 
 from config import in_path, out_path
-from utils import plot_feature_importances, plot_shap_force_plot, plot_Friedman_partial_dependence, plot_pred_scatter, plot_heatmap
+from utils import plot_feature_importances, plot_shap_force_plot, plot_Friedman_partial_dependence, plot_pred_scatter, plot_correlation_matrix, get_cum_cases
 from temp_prec import add_temp_prec
 
 
@@ -18,12 +18,8 @@ def encode_cat_features(df, cat_cols):
         df[cat_col] = df[cat_col].cat.codes
 
 
-def generate_xy(cols_to_remove):
-    df_fitting_results = pd.read_csv(in_path + "data_fitting_results.csv")
-    df_covariates = pd.read_csv(in_path + 'Dataset_Final.csv')
-    df_temp_prec = add_temp_prec()
-
-    df_merged = df_fitting_results.merge(df_covariates, left_on="country", right_on="Country")
+def generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove):
+    df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
     df_merged = df_merged.merge(df_temp_prec, how="left", on="country")
     df_merged.index = df_merged["country"]
     return df_merged.fillna(-1).drop(columns=cols_to_remove), df_merged["R0"]
@@ -50,33 +46,48 @@ cols_to_remove = ['country', 'growth_rate 1st wave', 'carry capacity 1st wave',
                   'Deaths_CumTotal', 'Deaths_CumTotal_perMillionPop', 'Deaths_newlyReported_last_7days',
                   'temp_2nd_wave', 'prec_2nd_wave']
 
-X, y = generate_xy(cols_to_remove)
-encode_cat_features(X, cat_cols)
+df_fitting_results = pd.read_csv(in_path + "data_fitting_results.csv")
+df_covariates = pd.read_csv(in_path + 'Dataset_Final.csv')
+df_temp_prec = add_temp_prec()
 
-# OLS
-lr = LinearRegression(fit_intercept=False).fit(X, y)
-pred_ols = lr.predict(X)
-mse_ols = mean_squared_error(y, pred_ols)
-r2_ols = r2_score(y, pred_ols)
+df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
+df_merged = df_merged.merge(df_temp_prec, how="left", on="country")
+df_merged.index = df_merged["country"]
 
-# Random Forest
-rf = RandomForestRegressor(n_estimators=300, max_features="sqrt", oob_score=True, random_state=0)
-opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [6, 8, 10]})
-pred_rf = fit_predict(opt_rf, X, y)
-mse_rf = mean_squared_error(y, pred_rf)
-r2_rf = opt_rf.score(X, y)
-print(r2_score(y, pred_rf))
-print("Mean squared error for random forest: ", mse_rf)
-print("R^2 for for random forest: ", r2_rf)
+# TODO: negative "Initial cases-2nd wave" ?
+ss_frac = (df_merged["Total_population"] - df_merged["Initial cases-2nd wave"]) / (df_merged["Total_population"])
+R0_hat = df_merged["R0"] * ss_frac
 
-print(X.columns)
-print(X.shape)
+#
+df_cases = pd.read_csv(in_path + "cases.csv")
+print(get_cum_cases(df_cases, df_fitting_results))
 
-top_features = plot_feature_importances(opt_rf, X, y, num_top_features=10)
+# #
+# X, y = generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove)
+# encode_cat_features(X, cat_cols)
+#
+# # OLS
+# lr = LinearRegression(fit_intercept=False).fit(X, y)
+# pred_ols = lr.predict(X)
+# mse_ols = mean_squared_error(y, pred_ols)
+# r2_ols = r2_score(y, pred_ols)
+#
+# # Random Forest
+# rf = RandomForestRegressor(n_estimators=300, max_features="sqrt", oob_score=True, random_state=0)
+# opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [4, 6, 8]})
+# pred_rf = fit_predict(opt_rf, X, y)
+# mse_rf = mean_squared_error(y, pred_rf)
+# r2_rf = opt_rf.score(X, y)
+# print(r2_score(y, pred_rf))
+# print("Mean squared error for random forest: ", mse_rf)
+# print("R^2 for for random forest: ", r2_rf)
+#
+# top_features = plot_feature_importances(opt_rf, X, y, num_top_features=10)
+# print(X[top_features].dtypes)
 
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 
-plot_heatmap(X[top_features])
-plot_Friedman_partial_dependence(opt_rf, top_features, X)
+# plot_correlation_matrix(X[top_features])
+# plot_Friedman_partial_dependence(opt_rf, top_features, X)
 
 # plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols)

@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import shap
 
+from peak_finding import get_1st_2nd_waves
+
 
 def plot_feature_importances(rf, X, y, num_top_features=10):
     def dropcol_importances(rf, X_train, y_train):
@@ -80,10 +82,29 @@ def plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols):
     plt.show()
 
 
-def plot_heatmap(df):
+def plot_correlation_matrix(df):
     corr = df.corr()
     cmap = sns.diverging_palette(230, 20, as_cmap=True)
     mask = np.triu(np.ones_like(corr, dtype=bool))
     sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
     plt.show()
+
+
+def get_cum_cases(df_cases, df_fitting_results):
+    df_waves = get_1st_2nd_waves(df_cases)
+    df_2nd_start = df_fitting_results.merge(df_waves, how='left', on="country")['2nd_start']
+    df_2nd_start.index = df_fitting_results['country']
+    df_cases['Date'] = pd.to_datetime(df_cases['Date'])
+    df_2nd_start['2nd_start'] = pd.to_datetime(df_2nd_start, errors='coerce')
+
+    cumcases = []
+    for country in df_fitting_results['country']:
+        date_i = df_2nd_start.loc[country]
+        df_cases_i = df_cases[df_cases['Entity'] == country]
+        if date_i != "00-00-00":
+            cumsum_i = df_cases_i.loc[df_cases_i['Date'] < date_i, 'cases'].sum()
+        else:
+            cumsum_i = -1
+        cumcases.append([country, cumsum_i])
+    return pd.DataFrame(cumcases, columns=['country', 'cum_cases_before_2nd_wave'])
