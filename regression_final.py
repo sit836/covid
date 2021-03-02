@@ -37,6 +37,10 @@ def fit_predict(model, X, diff):
     return model.predict(X)
 
 
+def compute_susceptible_frac(pop, num_sick):
+    return (pop - num_sick)/pop
+
+
 cat_cols = ['ISO', 'Continent', 'WHO_region', 'Transmission_Classification']
 cols_to_remove = ['country', 'growth_rate 1st wave', 'carry capacity 1st wave',
                   'R squared 1st wave', 'R0', 'growth_rate 2nd wave',
@@ -48,19 +52,21 @@ cols_to_remove = ['country', 'growth_rate 1st wave', 'carry capacity 1st wave',
 
 df_fitting_results = pd.read_csv(in_path + "data_fitting_results.csv")
 df_covariates = pd.read_csv(in_path + 'Dataset_Final.csv')
-df_temp_prec = add_temp_prec()
+df_temp_prec, df_waves = add_temp_prec()
 
 df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
 df_merged = df_merged.merge(df_temp_prec, how="left", on="country")
 df_merged.index = df_merged["country"]
 
 # TODO: negative "Initial cases-2nd wave" ?
-ss_frac = (df_merged["Total_population"] - df_merged["Initial cases-2nd wave"]) / (df_merged["Total_population"])
-R0_hat = df_merged["R0"] * ss_frac
+# ss_frac = compute_susceptible_frac(df_merged["Total_population"].values, df_merged["Initial cases-2nd wave"].values)
+# R0_hat = df_merged["R0"] * ss_frac
 
-#
 df_cases = pd.read_csv(in_path + "cases.csv")
-print(get_cum_cases(df_cases, df_fitting_results))
+df_cum_cases = get_cum_cases(df_cases, df_fitting_results, df_waves)
+ss_frac = compute_susceptible_frac(df_merged["Total_population"].values, df_cum_cases["cum_cases_before_2nd_wave"].values)
+R0_hat = df_merged["R0"] * ss_frac
+print(ss_frac)
 
 # #
 # X, y = generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove)

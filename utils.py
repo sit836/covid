@@ -91,8 +91,7 @@ def plot_correlation_matrix(df):
     plt.show()
 
 
-def get_cum_cases(df_cases, df_fitting_results):
-    df_waves = get_1st_2nd_waves(df_cases)
+def get_cum_cases(df_cases, df_fitting_results, df_waves):
     df_2nd_start = df_fitting_results.merge(df_waves, how='left', on="country")['2nd_start']
     df_2nd_start.index = df_fitting_results['country']
     df_cases['Date'] = pd.to_datetime(df_cases['Date'])
@@ -105,6 +104,6 @@ def get_cum_cases(df_cases, df_fitting_results):
         if date_i != "00-00-00":
             cumsum_i = df_cases_i.loc[df_cases_i['Date'] < date_i, 'cases'].sum()
         else:
-            cumsum_i = -1
+            cumsum_i = 0
         cumcases.append([country, cumsum_i])
     return pd.DataFrame(cumcases, columns=['country', 'cum_cases_before_2nd_wave'])

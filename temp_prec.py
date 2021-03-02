@@ -61,4 +61,5 @@ def add_temp_prec():
 
     df_temp = get_temp_or_prec(df_temp_raw, df_waves, "temp")
     df_prec = get_temp_or_prec(df_prec_raw, df_waves, "prec")
-    return df_temp.merge(df_prec, on="country")
+    return df_temp.merge(df_prec, on="country"), df_waves
+
