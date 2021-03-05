@@ -41,6 +41,25 @@ def compute_susceptible_frac(pop, num_sick):
     return (pop - num_sick)/pop
 
 
+def get_R0_hat(df_cases, df_fitting_results, df_waves, df_merged):
+    # TODO: negative "Initial cases-2nd wave" ?
+    # ss_frac = compute_susceptible_frac(df_merged["Total_population"].values, df_merged["Initial cases-2nd wave"].values)
+    # R0_hat = df_merged["R0"] * ss_frac
+
+    # TODO: Total_population has NAN
+    df_cum_cases = get_cum_cases(df_cases, df_fitting_results, df_waves)
+    ss_frac = compute_susceptible_frac(df_merged["Total_population"].values,
+                                       df_cum_cases["cum_cases_before_2nd_wave"].values)
+    return df_merged["R0"] * ss_frac
+
+
+def create_Rs(df_merged, R0_hat, pred_rf):
+    df_R = df_merged[["R0", "RE"]]
+    df_R["R0_hat"] = R0_hat
+    df_R["R"] = pred_rf
+    df_R.to_csv(out_path + "Rs.csv")
+
+
 cat_cols = ['ISO', 'Continent', 'WHO_region', 'Transmission_Classification']
 cols_to_remove = ['country', 'growth_rate 1st wave', 'carry capacity 1st wave',
                   'R squared 1st wave', 'R0', 'growth_rate 2nd wave',
@@ -58,42 +77,38 @@ df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country
 df_merged = df_merged.merge(df_temp_prec, how="left", on="country")
 df_merged.index = df_merged["country"]
 
-# TODO: negative "Initial cases-2nd wave" ?
-# ss_frac = compute_susceptible_frac(df_merged["Total_population"].values, df_merged["Initial cases-2nd wave"].values)
-# R0_hat = df_merged["R0"] * ss_frac
-
 df_cases = pd.read_csv(in_path + "cases.csv")
-df_cum_cases = get_cum_cases(df_cases, df_fitting_results, df_waves)
-ss_frac = compute_susceptible_frac(df_merged["Total_population"].values, df_cum_cases["cum_cases_before_2nd_wave"].values)
-R0_hat = df_merged["R0"] * ss_frac
-print(ss_frac)
+R0_hat = get_R0_hat(df_cases, df_fitting_results, df_waves, df_merged)
 
-# #
-# X, y = generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove)
-# encode_cat_features(X, cat_cols)
 #
-# # OLS
-# lr = LinearRegression(fit_intercept=False).fit(X, y)
-# pred_ols = lr.predict(X)
-# mse_ols = mean_squared_error(y, pred_ols)
-# r2_ols = r2_score(y, pred_ols)
-#
-# # Random Forest
-# rf = RandomForestRegressor(n_estimators=300, max_features="sqrt", oob_score=True, random_state=0)
-# opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [4, 6, 8]})
-# pred_rf = fit_predict(opt_rf, X, y)
-# mse_rf = mean_squared_error(y, pred_rf)
-# r2_rf = opt_rf.score(X, y)
-# print(r2_score(y, pred_rf))
-# print("Mean squared error for random forest: ", mse_rf)
-# print("R^2 for for random forest: ", r2_rf)
-#
-# top_features = plot_feature_importances(opt_rf, X, y, num_top_features=10)
-# print(X[top_features].dtypes)
+X, y = generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove)
+encode_cat_features(X, cat_cols)
+print("Shape of data: ", X.shape)
+
+# OLS
+lr = LinearRegression(fit_intercept=True).fit(X, y)
+pred_ols = lr.predict(X)
+mse_ols = mean_squared_error(y, pred_ols)
+r2_ols = r2_score(y, pred_ols)
+
+# Random Forest
+rf = RandomForestRegressor(n_estimators=300, max_features="sqrt", oob_score=True, random_state=0)
+opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [4, 6, 8]})
+pred_rf = fit_predict(opt_rf, X, y)
+mse_rf = mean_squared_error(y, pred_rf)
+r2_rf = opt_rf.score(X, y)
+print(r2_score(y, pred_rf))
+print("Mean squared error for random forest: ", mse_rf)
+print("R^2 for for random forest: ", r2_rf)
+
+create_Rs(df_merged, R0_hat, pred_rf)
+
+top_features = plot_feature_importances(opt_rf, X, y, num_top_features=10)
+print(X[top_features].dtypes)
 
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 
 # plot_correlation_matrix(X[top_features])
 # plot_Friedman_partial_dependence(opt_rf, top_features, X)
 
-# plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols)
+plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols)

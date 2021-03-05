@@ -39,7 +39,8 @@ def plot_feature_importances(rf, X, y, num_top_features=10):
     feature_importances = dropcol_importances(rf, X, y)
     feature_importances.sort_values(by='Importance', ascending=False, inplace=True)
     feature_importances = feature_importances.iloc[:num_top_features, :]
-    sns.barplot(x=feature_importances["Importance"].values, y=feature_importances.index)
+    ax = sns.barplot(x=feature_importances["Importance"].values, y=feature_importances.index)
+    ax.set(ylabel='')
     plt.title(f"Feature Importances (Top {num_top_features})")
     plt.show()
     return feature_importances.index

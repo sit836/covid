@@ -3,6 +3,9 @@ import pandas as pd
 from config import in_path
 
 
+pd.set_option('display.max_columns', 100)
+
+
 def get_covariates():
     df = pd.read_csv(in_path + "covid_dec.csv")
     df = df[(df["location"] != "International") & (df["location"] != "World")]
@@ -19,3 +22,9 @@ def get_covariates():
 
     continent_enc = pd.get_dummies(result_df["continent"], prefix="continent")
     return pd.concat([result_df.drop(columns=["continent"]), continent_enc], axis=1)
+
+
+if __name__ == "__main__":
+    df = get_covariates()
+    print(df.head())
+
