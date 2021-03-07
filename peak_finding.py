@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from scipy.signal import find_peaks
 from tqdm import tqdm
+import itertools
 
 from config import in_path, out_path
 
@@ -43,7 +44,8 @@ def get_tail_peaks(cases_smoothed, peaks, tail_length=10):
     return peaks
 
 
-def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, distance=60, window_width=28, generate_plot=False):
+def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, distance=60, window_width=28,
+                          generate_plot=False):
     result = {}
 
     for country in tqdm(df["Entity"].unique()):
@@ -68,9 +70,9 @@ def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, 
     return result
 
 
-def get_1st_2nd_waves(df):
+def get_1st_2nd_waves(df, generate_plot):
     result_df = pd.DataFrame(columns=['country', '1st_start', '1st_end', '2nd_start', '2nd_end'])
-    peaks_and_bottoms_dict = get_peaks_and_bottoms(df)
+    peaks_and_bottoms_dict = get_peaks_and_bottoms(df, generate_plot=generate_plot)
 
     for i, country in enumerate(peaks_and_bottoms_dict):
         peaks_raw, bottoms_raw = peaks_and_bottoms_dict[country]["peak_date"], peaks_and_bottoms_dict[country][
@@ -98,5 +100,34 @@ def get_1st_2nd_waves(df):
 
 if __name__ == "__main__":
     df = pd.read_csv(in_path + "cases.csv")
-    df_waves = get_1st_2nd_waves(df)
+
+    countries_to_remove = list(itertools.chain(*[df.loc[df["Entity"].str.contains(x), "Entity"].unique() for x in
+                                                 ["World", "income", "international"]])) \
+                          + ["China", "Croatia", "Cuba",
+                             "Czech Republic",
+                             "Ecuador", "Hungary", "NewZealand",
+                             "Sao Tome and Principe", "Slovenia", "Japan", "Serbia", "SouthKorea"]
+    df = df[~df["Entity"].isin(countries_to_remove)]
+
+    df_waves_raw = get_1st_2nd_waves(df, generate_plot=False)
+    countries_with_2nd_wave = df_waves_raw.loc[df_waves_raw["2nd_start"] != "00-00-00", "country"]
+    df = df[df["Entity"].isin(countries_with_2nd_wave)]
+    df_waves = get_1st_2nd_waves(df, generate_plot=False)
+
     print(df_waves.head())
+
+    df_waves.loc[df_waves["country"] == "Israel", "2nd_end"] = "2020-9-29"
+    df_waves.loc[df_waves["country"] == "Kazakhstan", "2nd_start"] = "2020-10-10"
+    df_waves.loc[df_waves["country"] == "Kazakhstan", "2nd_start"] = "2020-10-10"
+
+    df_to_add = pd.DataFrame.from_dict({'country': ['EI Salvador', 'Estonia', 'Iceland', 'Iran', 'Kenya', 'Mali'], \
+                                '1st_start': ['2020-05-04', '2020-03-17', '2020-03-19', '2020-02-27', '2020-05-07',
+                                              '2020-05-28'], \
+                                '1st_end': ['2020-08-02', '2020-04-01', '2020-04-03', '2020-03-28', '2020-08-05',
+                                            '2020-06-12'], \
+                                '2nd_start': ['2020-09-01', '2020-09-13', '2020-08-31', '2020-08-25', '2020-09-19',
+                                              '2020-10-25'], \
+                                '2nd_end': ['2020-11-30', '2020-11-27', '2020-10-15', '2020-11-23', '2020-11-18',
+                                            '2020-11-24']})
+    df_waves = pd.concat([df_waves, df_to_add])
+    df_waves.to_csv(out_path + "df_waves.csv", index=False)
