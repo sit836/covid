@@ -93,13 +93,18 @@ def plot_correlation_matrix(df):
 
 
 def get_cum_cases(df_cases, df_fitting_results, df_waves):
-    df_2nd_start = df_fitting_results.merge(df_waves, how='left', on="country")['2nd_start']
-    df_2nd_start.index = df_fitting_results['country']
+    df_merged = df_fitting_results.merge(df_waves, how='inner', on="country")
+
+    # print(sorted(set(df_fitting_results['country']).difference(df_waves['country'])))
+    # print(sorted(set(df_waves['country']).difference(df_fitting_results['country'])))
+
+    df_2nd_start = df_merged['2nd_start']
+    df_2nd_start.index = df_merged['country']
     df_cases['Date'] = pd.to_datetime(df_cases['Date'])
     df_2nd_start['2nd_start'] = pd.to_datetime(df_2nd_start, errors='coerce')
 
     cumcases = []
-    for country in df_fitting_results['country']:
+    for country in df_merged['country']:
         date_i = df_2nd_start.loc[country]
         df_cases_i = df_cases[df_cases['Entity'] == country]
         if date_i != "00-00-00":

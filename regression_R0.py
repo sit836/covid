@@ -20,7 +20,7 @@ def encode_cat_features(df, cat_cols):
 
 def generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove):
     df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
-    df_merged = df_merged.merge(df_temp_prec, how="left", on="country")
+    df_merged = df_merged.merge(df_temp_prec, how="inner", on="country")
     df_merged.index = df_merged["country"]
     return df_merged.fillna(-1).drop(columns=cols_to_remove), df_merged["R0"]
 
@@ -42,11 +42,6 @@ def compute_susceptible_frac(pop, num_sick):
 
 
 def get_R0_hat(df_cases, df_fitting_results, df_waves, df_merged):
-    # TODO: negative "Initial cases-2nd wave" ?
-    # ss_frac = compute_susceptible_frac(df_merged["Total_population"].values, df_merged["Initial cases-2nd wave"].values)
-    # R0_hat = df_merged["R0"] * ss_frac
-
-    # TODO: Total_population has NAN
     df_cum_cases = get_cum_cases(df_cases, df_fitting_results, df_waves)
     ss_frac = compute_susceptible_frac(df_merged["Total_population"].values,
                                        df_cum_cases["cum_cases_before_2nd_wave"].values)
@@ -54,7 +49,7 @@ def get_R0_hat(df_cases, df_fitting_results, df_waves, df_merged):
 
 
 def create_Rs(df_merged, R0_hat, pred_rf):
-    df_R = df_merged[["R0", "RE"]]
+    df_R = df_merged.loc[df_merged['country'].isin(R0_hat.index), ["R0", "RE"]]
     df_R["R0_hat"] = R0_hat
     df_R["R"] = pred_rf
     df_R.to_csv(out_path + "Rs.csv")
@@ -74,7 +69,7 @@ df_covariates = pd.read_csv(in_path + 'Dataset_Final.csv')
 df_temp_prec, df_waves = add_temp_prec()
 
 df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
-df_merged = df_merged.merge(df_temp_prec, how="left", on="country")
+df_merged = df_merged.merge(df_temp_prec, how="inner", on="country")
 df_merged.index = df_merged["country"]
 
 df_cases = pd.read_csv(in_path + "cases.csv")

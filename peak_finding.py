@@ -105,19 +105,18 @@ if __name__ == "__main__":
                                                  ["World", "income", "international"]])) \
                           + ["China", "Croatia", "Cuba",
                              "Czech Republic",
-                             "Ecuador", "Hungary", "NewZealand",
-                             "Sao Tome and Principe", "Slovenia", "Japan", "Serbia", "SouthKorea"]
+                             "Ecuador", "Hungary", "New Zealand",
+                             "Sao Tome and Principe", "Slovenia", "Japan", "Serbia", "South Korea"]
     df = df[~df["Entity"].isin(countries_to_remove)]
 
     df_waves_raw = get_1st_2nd_waves(df, generate_plot=False)
     countries_with_2nd_wave = df_waves_raw.loc[df_waves_raw["2nd_start"] != "00-00-00", "country"]
     df = df[df["Entity"].isin(countries_with_2nd_wave)]
-    df_waves = get_1st_2nd_waves(df, generate_plot=False)
+    df_waves = get_1st_2nd_waves(df, generate_plot=True)
 
     print(df_waves.head())
 
     df_waves.loc[df_waves["country"] == "Israel", "2nd_end"] = "2020-9-29"
-    df_waves.loc[df_waves["country"] == "Kazakhstan", "2nd_start"] = "2020-10-10"
     df_waves.loc[df_waves["country"] == "Kazakhstan", "2nd_start"] = "2020-10-10"
 
     df_to_add = pd.DataFrame.from_dict({'country': ['EI Salvador', 'Estonia', 'Iceland', 'Iran', 'Kenya', 'Mali'], \

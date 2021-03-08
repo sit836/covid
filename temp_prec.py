@@ -1,6 +1,6 @@
 import pandas as pd
 
-from config import in_path, cases_file_name, temp_file_name, prec_file_name
+from config import in_path, out_path, cases_file_name, temp_file_name, prec_file_name
 from peak_finding import get_1st_2nd_waves
 
 
@@ -52,8 +52,10 @@ def read_data(file_name):
 
 
 def add_temp_prec():
-    df_cases = pd.read_csv(in_path + cases_file_name)
-    df_waves = get_1st_2nd_waves(df_cases)
+    # df_cases = pd.read_csv(in_path + cases_file_name)
+    # df_waves = get_1st_2nd_waves(df_cases)
+
+    df_waves = pd.read_csv(in_path + "waves.csv")
     append_months(df_waves)
 
     df_temp_raw = read_data(temp_file_name)
