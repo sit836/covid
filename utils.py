@@ -75,11 +75,11 @@ def plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols):
     sns.scatterplot(x=y, y=pred_ols, label="OLS")
     plt.axline([0, 0], [1, 1], ls="--")
     plt.axis('equal')
-    plt.xlabel("Truth")
-    plt.ylabel("Prediction")
-    plt.title(
-        f"MSE RF: {round(mse_rf, 2)}, " + r"$R^2$ RF:" + f"{round(r2_rf, 2)}\n" \
-        + f"MSE OLS: {round(mse_ols, 2)}, " + r"$R^2$ OLS:" + f"{round(r2_ols, 2)}")
+    plt.xlabel("Truth", fontsize=15)
+    plt.ylabel("Prediction", fontsize=15)
+    # plt.title(
+    #     f"MSE RF: {round(mse_rf, 2)}, " + r"$R^2$ RF:" + f"{round(r2_rf, 2)}\n" \
+    #     + f"MSE OLS: {round(mse_ols, 2)}, " + r"$R^2$ OLS:" + f"{round(r2_ols, 2)}")
     plt.legend()
     plt.show()
 

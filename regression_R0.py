@@ -93,9 +93,11 @@ lr = LinearRegression(fit_intercept=True).fit(X, y)
 pred_ols = lr.predict(X)
 mse_ols = mean_squared_error(y, pred_ols)
 r2_ols = r2_score(y, pred_ols)
+print("Mean squared error for OLS: ", mse_ols)
+print("R^2 for for OLS: ", r2_ols)
 
 # Random Forest
-rf = RandomForestRegressor(n_estimators=300, max_features="sqrt", oob_score=True, random_state=0)
+rf = RandomForestRegressor(n_estimators=500, max_features="sqrt", oob_score=True, random_state=0)
 opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [17, 20, 23]})
 pred_rf = fit_predict(opt_rf, X, y)
 mse_rf = mean_squared_error(y, pred_rf)

@@ -13,7 +13,6 @@ from sklearn.linear_model import LinearRegression
 from config import in_path, out_path
 from utils import plot_feature_importances, plot_pred_scatter
 
-
 pd.set_option('display.max_columns', 100)
 
 
@@ -28,11 +27,10 @@ def generate_xy(file_Rs, file_latest_combined_proc):
     th = 0.10
     missing_ratio = df_merged[X_raw.columns].isnull().sum().sort_values(ascending=False) / df_merged.shape[0]
     cols_to_keep = missing_ratio[(missing_ratio < th)].index.tolist()
-
-    # plt.hist(df_merged[X_raw.columns].isnull().sum().sort_values(ascending=False) / X.shape[0], bins=30)
-    # plt.show()
-
     X = df_merged[cols_to_keep].select_dtypes(include="number").fillna(-1)
+
+    cols_to_drop = ["H7_0.0"]
+    X = X.drop(columns=cols_to_drop)
     return X, diff
 
 
@@ -50,12 +48,11 @@ def fit_predict(model, X, diff):
 
 file_Rs = "Rs.csv"
 file_latest_combined = "OxCGRT_latest_combined_proc.csv"
-
 df = pd.read_csv(in_path + file_latest_combined)
 
 X, y = generate_xy(file_Rs, file_latest_combined)
 print("Shape of data: ", X.shape)
-# X.to_csv(out_path+"X.csv")
+# print((X.std()/X.mean()).sort_values())
 
 # # LASSO
 # X_scaled = preprocessing.scale(X)
@@ -77,7 +74,7 @@ print("Mean squared error for OLS: ", mse_ols)
 print("R^2 for for OLS: ", r2_ols)
 
 # Random Forest
-rf = RandomForestRegressor(n_estimators=300, max_features="sqrt", oob_score=True, random_state=0)
+rf = RandomForestRegressor(n_estimators=500, max_features="sqrt", oob_score=True, random_state=0)
 opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [2, 4]})
 pred_rf = fit_predict(opt_rf, X, y)
 mse_rf = mean_squared_error(y, pred_rf)
