@@ -34,9 +34,13 @@ def get_temp_or_prec(df_temp_prec, df_waves, var_name):
         df_waves_i = df_waves[df_waves["country"] == country]
 
         if df_waves_i.squeeze().str.contains("00-00-00").sum() == 0:
-            var_1st_wave = df_temp_prec_i.iloc[(df_waves_i["1st_start_month"].iloc[0]-1):(df_waves_i["1st_end_month"].iloc[0])].mean()
-            var_2nd_wave = df_temp_prec_i.iloc[(df_waves_i["2nd_start_month"].iloc[0]-1):(df_waves_i["2nd_end_month"].iloc[0])].mean()
-            result_df = result_df.append({"country": country, f"{var_name}_1st_wave": var_1st_wave, f"{var_name}_2nd_wave": var_2nd_wave}, ignore_index=True)
+            var_1st_wave = df_temp_prec_i.iloc[
+                           (df_waves_i["1st_start_month"].iloc[0] - 1):(df_waves_i["1st_end_month"].iloc[0])].mean()
+            var_2nd_wave = df_temp_prec_i.iloc[
+                           (df_waves_i["2nd_start_month"].iloc[0] - 1):(df_waves_i["2nd_end_month"].iloc[0])].mean()
+            result_df = result_df.append(
+                {"country": country, f"{var_name}_1st_wave": var_1st_wave, f"{var_name}_2nd_wave": var_2nd_wave},
+                ignore_index=True)
     return result_df
 
 
@@ -52,9 +56,6 @@ def read_data(file_name):
 
 
 def add_temp_prec():
-    # df_cases = pd.read_csv(in_path + cases_file_name)
-    # df_waves = get_1st_2nd_waves(df_cases)
-
     df_waves = pd.read_csv(in_path + "waves.csv")
     append_months(df_waves)
 
@@ -64,4 +65,3 @@ def add_temp_prec():
     df_temp = get_temp_or_prec(df_temp_raw, df_waves, "temp")
     df_prec = get_temp_or_prec(df_prec_raw, df_waves, "prec")
     return df_temp.merge(df_prec, on="country"), df_waves
-

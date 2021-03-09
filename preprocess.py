@@ -55,11 +55,6 @@ def process_data(df):
     return result_df
 
 
-def process_world_pop(world_pop_name, year=2020):
-    df_raw = pd.read_csv(in_path + world_pop_name + ".csv")
-    return df_raw.loc[(df_raw["Time"] == year) & (df_raw["Variant"] == "Medium"), ["Location", "population"]]
-
-
 if __name__ == "__main__":
     file_name = "OxCGRT_latest_combined"
     df_raw = pd.read_csv(in_path + file_name + ".csv", low_memory=False)
@@ -68,16 +63,12 @@ if __name__ == "__main__":
     df_raw = df_raw[selected_col_names]
     df_proc = process_data(df_raw)
 
-    df_covariates = pd.read_csv(in_path + 'Dataset_Final.csv')
-    df_temp_prec, df_waves = add_temp_prec()
-
     df_fitting_results = pd.read_csv(in_path + "data_fitting_results.csv")
-    df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
-    df_merged = df_merged.merge(df_temp_prec, how="left", on="country")
-    df_merged = df_merged.merge(df_proc, how="left", left_on="country", right_on="CountryName")
+    df_merged = df_fitting_results.merge(df_proc, how="inner", left_on="country", right_on="CountryName")
     df_merged.index = df_merged["country"]
 
     result_df = df_merged.drop(columns=["growth_rate 1st wave", "carry capacity 1st wave", "R squared 1st wave",
                                         "R0", "growth_rate 2nd wave", "carry capacity 2nd wave",
-                                        "R squared 2nd wave", "RE", "Initial cases-2nd wave", "Expected RE", "Country"])
+                                        "R squared 2nd wave", "RE", "Initial cases-2nd wave", "Expected RE", "CountryName",
+                                        "ConfirmedDeaths", "ConfirmedCases"])
     result_df.to_csv(in_path + file_name + "_proc.csv", index=False)

@@ -10,8 +10,8 @@ def diagnostic_plots(rate_0, rate_e):
     diff = rate_0 - rate_e
     fig, axs = plt.subplots(nrows=2, ncols=2)
 
-    sns.distplot(df['R0'], kde=False, ax=axs[0, 0], label="R0")
-    sns.distplot(df['RE'], kde=False, ax=axs[0, 0], label="RE")
+    sns.distplot(df['R0_hat'], kde=False, ax=axs[0, 0], label="R0_hat")
+    sns.distplot(df['R'], kde=False, ax=axs[0, 0], label="R")
     axs[0, 0].set(xlabel=None)
     axs[0, 0].set_title("Histogram of Growth Rates")
     axs[0, 0].legend()
@@ -19,7 +19,7 @@ def diagnostic_plots(rate_0, rate_e):
     sns.distplot(diff, kde=False, ax=axs[0, 1])
     axs[0, 1].set_title("Histogram of Difference")
 
-    sns.boxplot(data=df[['R0', 'RE']], showfliers=False, orient='v', ax=axs[1, 0])
+    sns.boxplot(data=df[['R0_hat', 'R']], showfliers=False, orient='v', ax=axs[1, 0])
     axs[1, 0].set_title("Boxplot of Growth Rates")
 
     stats.probplot(diff, dist="norm", plot=axs[1, 1])
@@ -41,36 +41,28 @@ def hypo_test(x, y):
     # print(f"P-value for Wilcoxon test (one-sided): {p_val_wc / 2}")
 
 
+def make_plot():
+    fig, axs = plt.subplots(1, 2)
+    axs[0].scatter(r0_hat, r)
+    axs[0].axline([0, 0], [1, 1], ls="--", c="k")
+    axs[0].axis('square')
+    axs[0].set_xlabel("R0_hat", fontsize=15)
+    axs[0].set_ylabel("R", fontsize=15)
+
+    th = 0.22
+    for i, country in enumerate(df['country']):
+        if abs(r0_hat[i] / r[i] - 1) > th:
+            axs[0].annotate(country, (r0_hat[i], r[i]), fontsize=14)
+    axs[0].tick_params(axis='both', which='major', labelsize=15)
+
+    sns.boxplot(data=df[['R0_hat', 'R']], showfliers=False, orient='v')
+    axs[1].tick_params(axis='both', which='major', labelsize=15)
+    plt.show()
+
+
 df = pd.read_csv(out_path + "Rs.csv")
 r0, re, r0_hat, r = df["R0"], df["RE"], df["R0_hat"], df["R"]
 
-# fig, axs = plt.subplots(1, 3)
-# axs[0].scatter(re, r0)
-# axs[0].axline([0, 0], [1, 1], ls="--", c="k")
-# axs[0].axis('square')
-# axs[0].set_xlabel("RE")
-# axs[0].set_ylabel("R0")
-#
-# axs[1].scatter(re, r0_hat)
-# axs[1].axline([0, 0], [1, 1], ls="--", c="k")
-# axs[1].axis('square')
-# axs[1].set_xlabel("RE")
-# axs[1].set_ylabel("R0_hat")
-#
-# axs[2].scatter(re, r)
-# axs[2].axline([0, 0], [1, 1], ls="--", c="k")
-# axs[2].axis('square')
-# axs[2].set_xlabel("RE")
-# axs[2].set_ylabel("R")
-# plt.show()
-#
-# sns.boxplot(data=df[['R0', 'RE', 'R0_hat']], showfliers=False, orient='v')
-# plt.show()
-
-diagnostic_plots(r0, re)
-diagnostic_plots(r0_hat, re)
-diagnostic_plots(r, re)
-
-hypo_test(r0, re)
-hypo_test(r0_hat, re)
-hypo_test(r, re)
+make_plot()
+diagnostic_plots(r0_hat, r)
+hypo_test(r0_hat, r)

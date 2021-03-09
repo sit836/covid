@@ -78,7 +78,8 @@ def plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols):
     plt.xlabel("Truth")
     plt.ylabel("Prediction")
     plt.title(
-        f"MSE_RF: {round(mse_rf, 2)}, R2_RF: {round(r2_rf, 2)}\n MSE_OLS: {round(mse_ols, 2)}, R2_OLS: {round(r2_ols, 2)}")
+        f"MSE RF: {round(mse_rf, 2)}, " + r"$R^2$ RF:" + f"{round(r2_rf, 2)}\n" \
+        + f"MSE OLS: {round(mse_ols, 2)}, " + r"$R^2$ OLS:" + f"{round(r2_ols, 2)}")
     plt.legend()
     plt.show()
 
@@ -94,10 +95,6 @@ def plot_correlation_matrix(df):
 
 def get_cum_cases(df_cases, df_fitting_results, df_waves):
     df_merged = df_fitting_results.merge(df_waves, how='inner', on="country")
-
-    # print(sorted(set(df_fitting_results['country']).difference(df_waves['country'])))
-    # print(sorted(set(df_waves['country']).difference(df_fitting_results['country'])))
-
     df_2nd_start = df_merged['2nd_start']
     df_2nd_start.index = df_merged['country']
     df_cases['Date'] = pd.to_datetime(df_cases['Date'])

@@ -8,8 +8,15 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
 
 from config import in_path, out_path
-from utils import plot_feature_importances, plot_shap_force_plot, plot_Friedman_partial_dependence, plot_pred_scatter, plot_correlation_matrix, get_cum_cases
+from utils import plot_feature_importances, plot_shap_force_plot, plot_Friedman_partial_dependence, plot_pred_scatter, \
+    plot_correlation_matrix, get_cum_cases
 from temp_prec import add_temp_prec
+
+
+def remove_cols_with_high_missing_ratio(df_covariates, th):
+    missing_ratio = df_covariates.isnull().sum().sort_values(ascending=False) / df_covariates.shape[0]
+    cols_to_keep = missing_ratio[(missing_ratio < th)].index.tolist()
+    return df_covariates[cols_to_keep]
 
 
 def encode_cat_features(df, cat_cols):
@@ -38,7 +45,7 @@ def fit_predict(model, X, diff):
 
 
 def compute_susceptible_frac(pop, num_sick):
-    return (pop - num_sick)/pop
+    return (pop - num_sick) / pop
 
 
 def get_R0_hat(df_cases, df_fitting_results, df_waves, df_merged):
@@ -59,13 +66,14 @@ cat_cols = ['ISO', 'Continent', 'WHO_region', 'Transmission_Classification']
 cols_to_remove = ['country', 'growth_rate 1st wave', 'carry capacity 1st wave',
                   'R squared 1st wave', 'R0', 'growth_rate 2nd wave',
                   'carry capacity 2nd wave', 'R squared 2nd wave', 'RE',
-                  'Initial cases-2nd wave', 'Expected RE', 'Country', 'Malaria_reported2018',
+                  'Initial cases-2nd wave', 'Expected RE', 'Country',
                   'Cases_CumTotal', 'CasesCum_per_millionPop', 'Cases_newlyReported_last_7days',
                   'Deaths_CumTotal', 'Deaths_CumTotal_perMillionPop', 'Deaths_newlyReported_last_7days',
                   'temp_2nd_wave', 'prec_2nd_wave']
 
 df_fitting_results = pd.read_csv(in_path + "data_fitting_results.csv")
-df_covariates = pd.read_csv(in_path + 'Dataset_Final.csv')
+df_covariates = pd.read_csv(in_path + 'Dataset_Final03032021.csv')
+df_covariates = remove_cols_with_high_missing_ratio(df_covariates, th=0.10)
 df_temp_prec, df_waves = add_temp_prec()
 
 df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
@@ -88,7 +96,7 @@ r2_ols = r2_score(y, pred_ols)
 
 # Random Forest
 rf = RandomForestRegressor(n_estimators=300, max_features="sqrt", oob_score=True, random_state=0)
-opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [4, 6, 8]})
+opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [17, 20, 23]})
 pred_rf = fit_predict(opt_rf, X, y)
 mse_rf = mean_squared_error(y, pred_rf)
 r2_rf = opt_rf.score(X, y)
@@ -98,11 +106,10 @@ print("R^2 for for random forest: ", r2_rf)
 
 create_Rs(df_merged, R0_hat, pred_rf)
 
-top_features = plot_feature_importances(opt_rf, X, y, num_top_features=10)
+top_features = plot_feature_importances(opt_rf, X, y, num_top_features=15)
 print(X[top_features].dtypes)
 
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
-
 # plot_correlation_matrix(X[top_features])
 # plot_Friedman_partial_dependence(opt_rf, top_features, X)
 
