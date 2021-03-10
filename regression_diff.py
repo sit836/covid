@@ -11,7 +11,7 @@ from sklearn.metrics import r2_score
 from sklearn.linear_model import LinearRegression
 
 from config import in_path, out_path
-from utils import plot_feature_importances, plot_pred_scatter
+from utils import plot_permutation_feature_importances, plot_pred_scatter
 
 pd.set_option('display.max_columns', 100)
 
@@ -81,7 +81,7 @@ mse_rf = mean_squared_error(y, pred_rf)
 r2_rf = opt_rf.score(X, y)
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
-plot_feature_importances(opt_rf, X)
+plot_permutation_feature_importances(opt_rf, X, y)
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 
 plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols)

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.base import clone
 from sklearn.inspection import plot_partial_dependence
+from sklearn.inspection import permutation_importance
 import matplotlib.pyplot as plt
 
 import seaborn as sns
@@ -10,16 +11,21 @@ import shap
 from peak_finding import get_1st_2nd_waves
 
 
-def plot_feature_importances(rf, X, num_top_features=10):
-    feature_importances = rf.feature_importances_
-    indices = np.argsort(feature_importances)[::-1]
-    indices = indices[:num_top_features]
+def plot_permutation_feature_importances(rf, X, y, num_top_features=10):
+    # feature_importances = rf.feature_importances_
+    # indices = np.argsort(feature_importances)[::-1]
+    # indices = indices[:num_top_features]
+    #
+    # ax = sns.barplot(x=feature_importances[indices], y=X.columns.array[indices])
 
-    ax = sns.barplot(x=feature_importances[indices], y=X.columns.array[indices])
+    perm_importance = permutation_importance(rf, X, y)
+    sorted_idx = np.argsort(perm_importance.importances_mean)[::-1][:num_top_features]
+    ax = sns.barplot(perm_importance.importances_mean[sorted_idx], X.columns.array[sorted_idx])
+
     ax.set(ylabel='')
     plt.title(f"Feature Importances (Top {num_top_features})")
     plt.show()
-    return X.columns.array[indices]
+    return X.columns.array[sorted_idx]
 
 
 def plot_shap_force_plot(model, X, country_name, out_path):

@@ -8,7 +8,7 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
 
 from config import in_path, out_path
-from utils import plot_feature_importances, plot_shap_force_plot, plot_Friedman_partial_dependence, plot_pred_scatter, \
+from utils import plot_permutation_feature_importances, plot_shap_force_plot, plot_Friedman_partial_dependence, plot_pred_scatter, \
     plot_correlation_matrix, get_cum_cases
 from temp_prec import add_temp_prec
 
@@ -113,7 +113,7 @@ pred_rf_star = opt_rf.predict(X_star)
 create_Rs(df_merged, R0_hat, pred_rf_star)
 
 #
-top_features = plot_feature_importances(opt_rf, X, num_top_features=15)
+top_features = plot_permutation_feature_importances(opt_rf, X, y, num_top_features=15)
 print(X[top_features].dtypes)
 
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
