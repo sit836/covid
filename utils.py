@@ -10,40 +10,16 @@ import shap
 from peak_finding import get_1st_2nd_waves
 
 
-def plot_feature_importances(rf, X, y, num_top_features=10):
-    def dropcol_importances(rf, X_train, y_train):
-        """
-        A brute force drop-column importance mechanism: Drop a column entirely, retrain the model, and recompute the
-        performance score.
-        """
-        rf_ = clone(rf)
-        rf_.random_state = 999
-        rf_.fit(X_train, y_train)
-        baseline = rf_.oob_score_
-        imp = []
-        for col in X_train.columns:
-            X = X_train.drop(col, axis=1)
-            rf_ = clone(rf)
-            rf_.random_state = 999
-            rf_.fit(X, y_train)
-            o = rf_.oob_score_
-            imp.append(baseline - o)
-        imp = np.array(imp)
-        I = pd.DataFrame(
-            data={'Feature': X_train.columns,
-                  'Importance': imp})
-        I = I.set_index('Feature')
-        I = I.sort_values('Importance', ascending=True)
-        return I
+def plot_feature_importances(rf, X, num_top_features=10):
+    feature_importances = rf.feature_importances_
+    indices = np.argsort(feature_importances)[::-1]
+    indices = indices[:num_top_features]
 
-    feature_importances = dropcol_importances(rf, X, y)
-    feature_importances.sort_values(by='Importance', ascending=False, inplace=True)
-    feature_importances = feature_importances.iloc[:num_top_features, :]
-    ax = sns.barplot(x=feature_importances["Importance"].values, y=feature_importances.index)
+    ax = sns.barplot(x=feature_importances[indices], y=X.columns.array[indices])
     ax.set(ylabel='')
     plt.title(f"Feature Importances (Top {num_top_features})")
     plt.show()
-    return feature_importances.index
+    return X.columns.array[indices]
 
 
 def plot_shap_force_plot(model, X, country_name, out_path):
@@ -75,12 +51,12 @@ def plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols):
     sns.scatterplot(x=y, y=pred_ols, label="OLS")
     plt.axline([0, 0], [1, 1], ls="--")
     plt.axis('equal')
-    plt.xlabel("Truth", fontsize=15)
-    plt.ylabel("Prediction", fontsize=15)
+    plt.xlabel("Actual", fontsize=25)
+    plt.ylabel("Predicted", fontsize=25)
     # plt.title(
     #     f"MSE RF: {round(mse_rf, 2)}, " + r"$R^2$ RF:" + f"{round(r2_rf, 2)}\n" \
     #     + f"MSE OLS: {round(mse_ols, 2)}, " + r"$R^2$ OLS:" + f"{round(r2_ols, 2)}")
-    plt.legend()
+    plt.legend(fontsize=20)
     plt.show()
 
 

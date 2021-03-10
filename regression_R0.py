@@ -106,9 +106,14 @@ print(r2_score(y, pred_rf))
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
 
-create_Rs(df_merged, R0_hat, pred_rf)
+#
+X_star = X.merge(df_temp_prec[['country', 'temp_2nd_wave', 'prec_2nd_wave']], how="inner", left_index=True, right_on="country")
+X_star = X_star.drop(columns=['temp_1st_wave', 'prec_1st_wave', 'country'])
+pred_rf_star = opt_rf.predict(X_star)
+create_Rs(df_merged, R0_hat, pred_rf_star)
 
-top_features = plot_feature_importances(opt_rf, X, y, num_top_features=15)
+#
+top_features = plot_feature_importances(opt_rf, X, num_top_features=15)
 print(X[top_features].dtypes)
 
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
