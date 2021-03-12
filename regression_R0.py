@@ -116,8 +116,8 @@ create_Rs(df_merged, R0_hat, pred_rf_star)
 top_features = plot_permutation_feature_importances(opt_rf, X, y, num_top_features=15)
 print(X[top_features].dtypes)
 
-# plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
+plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 # plot_correlation_matrix(X[top_features])
 # plot_Friedman_partial_dependence(opt_rf, top_features, X)
 
-plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols)
+# plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols, baseline_label="OLS")

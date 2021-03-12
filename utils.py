@@ -12,18 +12,13 @@ from peak_finding import get_1st_2nd_waves
 
 
 def plot_permutation_feature_importances(rf, X, y, num_top_features=10):
-    # feature_importances = rf.feature_importances_
-    # indices = np.argsort(feature_importances)[::-1]
-    # indices = indices[:num_top_features]
-    #
-    # ax = sns.barplot(x=feature_importances[indices], y=X.columns.array[indices])
-
     perm_importance = permutation_importance(rf, X, y)
     sorted_idx = np.argsort(perm_importance.importances_mean)[::-1][:num_top_features]
-    ax = sns.barplot(perm_importance.importances_mean[sorted_idx], X.columns.array[sorted_idx])
+    ax = sns.barplot(x=perm_importance.importances_mean[sorted_idx], y=X.columns.array[sorted_idx])
 
     ax.set(ylabel='')
-    plt.title(f"Feature Importances (Top {num_top_features})")
+    ax.tick_params(axis='both', which='major', labelsize=11.5)
+    plt.title(f"Feature Importances (Top {num_top_features})", fontsize=20)
     plt.show()
     return X.columns.array[sorted_idx]
 
@@ -52,11 +47,11 @@ def plot_Friedman_partial_dependence(model, col_names, X):
     plt.show()
 
 
-def plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols):
-    sns.scatterplot(x=y, y=pred_rf, label="Random Forest")
-    sns.scatterplot(x=y, y=pred_ols, label="OLS")
+def plot_pred_scatter(pred_rf, pred_baseline, y, mse_rf, mse_ols, r2_rf, r2_ols, baseline_label):
+    sns.scatterplot(x=y, y=pred_rf, label="Random Forest", s=80)
+    sns.scatterplot(x=y, y=pred_baseline, label=baseline_label, s=80)
     plt.axline([0, 0], [1, 1], ls="--")
-    plt.axis('equal')
+    plt.axis('square')
     plt.xlabel("Actual", fontsize=25)
     plt.ylabel("Predicted", fontsize=25)
     # plt.title(

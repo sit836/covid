@@ -1,5 +1,5 @@
 import itertools
-
+import numpy as np
 import pandas as pd
 
 from tqdm import tqdm
@@ -19,14 +19,35 @@ def get_selected_cols(df):
     return list(set(df.columns).difference(cols_to_remove))
 
 
+# def encode_categorical_features(df):
+#     index = []
+#     data = []
+#
+#     for col in df.columns[df.columns.str.contains("numeric")]:
+#         df_col_i = df[col]
+#         df_col_i = df_col_i.replace(0, np.NaN)
+#         freq_table = df_col_i.value_counts() / df_col_i.count()
+#         data.append(freq_table.values)
+#         index.append([col.split("_")[0] + "_" + str(x) for x in freq_table.index.tolist()])
+#
+#     return pd.Series(list(itertools.chain(*data)), index=list(itertools.chain(*index)))
+
+
+# def encode_categorical_features(df):
+#     cols = df.columns[df.columns.str.contains("numeric")]
+#     df_cat = df[cols].replace(0, np.NaN)
+#     return df_cat.median()
+
+
 def encode_categorical_features(df):
     index = []
     data = []
 
     for col in df.columns[df.columns.str.contains("numeric")]:
-        freq_table = df[col].value_counts() / df[col].count()
-        data.append(freq_table.values)
-        index.append([col.split("_")[0] + "_" + str(x) for x in freq_table.index.tolist()])
+        df_col_i = df[col]
+        df_col_i = df_col_i.replace(0, np.NaN)
+        data.append(df_col_i.value_counts())
+        index.append([col.split("_")[0] + "_" + str(x) for x in df_col_i.value_counts().index.tolist()])
 
     return pd.Series(list(itertools.chain(*data)), index=list(itertools.chain(*index)))
 
@@ -34,6 +55,7 @@ def encode_categorical_features(df):
 def encode_numerical_features(df):
     cols = [col for col in df.columns if "combined" not in col]
     df_numeric = df[df[cols].select_dtypes(exclude="object").columns]
+    df_numeric = df_numeric.replace(0, np.NaN)
     return df_numeric.median()
 
 
@@ -71,4 +93,9 @@ if __name__ == "__main__":
                                         "R0", "growth_rate 2nd wave", "carry capacity 2nd wave",
                                         "R squared 2nd wave", "RE", "Initial cases-2nd wave", "Expected RE", "CountryName",
                                         "ConfirmedDeaths", "ConfirmedCases"])
+    result_df = result_df[sorted(result_df.columns)]
+
+    cols = result_df.columns[result_df.columns.str.contains("_")]
+    result_df[cols] = result_df[cols].replace(np.NaN, 0)
+
     result_df.to_csv(in_path + file_name + "_proc.csv", index=False)
