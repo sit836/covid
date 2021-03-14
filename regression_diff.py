@@ -21,8 +21,8 @@ def generate_xy(file_Rs, file_latest_combined_proc):
     X_raw = pd.read_csv(in_path + file_latest_combined_proc)
     df_merged = df_rs.merge(X_raw, on="country")
     df_merged.index = df_merged["country"]
-    r0_hat, r = df_merged["R0_hat"], df_merged["R"]
-    diff = r0_hat - r
+    re_hat, re = df_merged["RE_hat"], df_merged["RE"]
+    diff = re_hat - re
 
     th = 0.10
     missing_ratio = df_merged[X_raw.columns].isnull().sum().sort_values(ascending=False) / df_merged.shape[0]

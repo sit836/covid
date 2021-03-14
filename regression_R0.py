@@ -44,21 +44,16 @@ def fit_predict(model, X, diff):
     return model.predict(X)
 
 
-def compute_susceptible_frac(pop, num_sick):
-    return (pop - num_sick) / pop
+def create_Rs(df_merged, R0_hat):
+    def compute_susceptible_frac(pop, num_sick):
+        return (pop - num_sick) / pop
 
+    df_R = df_merged.loc[df_merged['country'].isin(R0_hat.index), ["R0", "RE"]]
 
-def get_R0_hat(df_cases, df_fitting_results, df_waves, df_merged):
     df_cum_cases = get_cum_cases(df_cases, df_fitting_results, df_waves)
     ss_frac = compute_susceptible_frac(df_merged["Total_population"].values,
                                        df_cum_cases["cum_cases_before_2nd_wave"].values)
-    return df_merged["R0"] * ss_frac
-
-
-def create_Rs(df_merged, R0_hat, pred_rf):
-    df_R = df_merged.loc[df_merged['country'].isin(R0_hat.index), ["R0", "RE"]]
-    df_R["R0_hat"] = R0_hat
-    df_R["R"] = pred_rf
+    df_R["RE_hat"] = R0_hat * ss_frac
     df_R.to_csv(out_path + "Rs.csv")
 
 
@@ -81,7 +76,6 @@ df_merged = df_merged.merge(df_temp_prec, how="inner", on="country")
 df_merged.index = df_merged["country"]
 
 df_cases = pd.read_csv(in_path + "cases.csv")
-R0_hat = get_R0_hat(df_cases, df_fitting_results, df_waves, df_merged)
 
 #
 X, y = generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove)
@@ -108,9 +102,11 @@ print("R^2 for for random forest: ", r2_rf)
 
 #
 X_star = X.merge(df_temp_prec[['country', 'temp_2nd_wave', 'prec_2nd_wave']], how="inner", left_index=True, right_on="country")
+countries_star = X_star['country']
 X_star = X_star.drop(columns=['temp_1st_wave', 'prec_1st_wave', 'country'])
-pred_rf_star = opt_rf.predict(X_star)
-create_Rs(df_merged, R0_hat, pred_rf_star)
+
+r0_hat = pd.Series(opt_rf.predict(X_star), index=countries_star)
+create_Rs(df_merged, r0_hat)
 
 #
 top_features = plot_permutation_feature_importances(opt_rf, X, y, num_top_features=15)
