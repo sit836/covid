@@ -98,4 +98,7 @@ if __name__ == "__main__":
     cols = result_df.columns[result_df.columns.str.contains("_")]
     result_df[cols] = result_df[cols].replace(np.NaN, 0)
 
-    result_df.to_csv(in_path + file_name + "_proc.csv", index=False)
+    print(result_df.isnull().sum().sum())
+    print(result_df.shape)
+
+    # result_df.to_csv(in_path + file_name + "_proc.csv", index=False)

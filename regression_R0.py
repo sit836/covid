@@ -29,7 +29,7 @@ def generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove)
     df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
     df_merged = df_merged.merge(df_temp_prec, how="inner", on="country")
     df_merged.index = df_merged["country"]
-    return df_merged.fillna(-1).drop(columns=cols_to_remove), df_merged["R0"]
+    return df_merged.fillna(df_merged.median()).drop(columns=cols_to_remove), df_merged["R0"],  df_merged["RE"]
 
 
 def search_opt_model(X, y, model, param_grid):
@@ -55,7 +55,7 @@ def create_Rs(df_merged, R0_hat):
                                        df_cum_cases["cum_cases_before_2nd_wave"].values)
     df_R["RE_hat"] = R0_hat * ss_frac
     df_R.to_csv(out_path + "Rs.csv")
-
+    return df_R["RE_hat"]
 
 cat_cols = ['ISO', 'Continent', 'WHO_region', 'Transmission_Classification']
 cols_to_remove = ['country', 'growth_rate 1st wave', 'carry capacity 1st wave',
@@ -78,7 +78,7 @@ df_merged.index = df_merged["country"]
 df_cases = pd.read_csv(in_path + "cases.csv")
 
 #
-X, y = generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove)
+X, y, y_star = generate_xy(df_fitting_results, df_covariates, df_temp_prec, cols_to_remove)
 encode_cat_features(X, cat_cols)
 print("Shape of data: ", X.shape)
 
@@ -92,11 +92,10 @@ print("R^2 for for OLS: ", r2_ols)
 
 # Random Forest
 rf = RandomForestRegressor(n_estimators=500, max_features="sqrt", oob_score=True, random_state=0)
-opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [17, 20, 23]})
+opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [6, 8, 10]})
 pred_rf = fit_predict(opt_rf, X, y)
 mse_rf = mean_squared_error(y, pred_rf)
 r2_rf = opt_rf.score(X, y)
-print(r2_score(y, pred_rf))
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
 
@@ -104,15 +103,19 @@ print("R^2 for for random forest: ", r2_rf)
 X_star = X.merge(df_temp_prec[['country', 'temp_2nd_wave', 'prec_2nd_wave']], how="inner", left_index=True, right_on="country")
 countries_star = X_star['country']
 X_star = X_star.drop(columns=['temp_1st_wave', 'prec_1st_wave', 'country'])
+pred_rf_star = opt_rf.predict(X_star)
+r0_hat = pd.Series(pred_rf_star, index=countries_star)
 
-r0_hat = pd.Series(opt_rf.predict(X_star), index=countries_star)
-create_Rs(df_merged, r0_hat)
+re_hat = create_Rs(df_merged, r0_hat)
+mse_rf_star = mean_squared_error(y_star, re_hat)
+
+print("Mean squared error for random forest: ", mse_rf_star)
+print("R^2 for for random forest: ", r2_score(y_star, re_hat))
 
 #
 top_features = plot_permutation_feature_importances(opt_rf, X, y, num_top_features=15)
-print(X[top_features].dtypes)
 
-plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
+# plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 # plot_correlation_matrix(X[top_features])
 # plot_Friedman_partial_dependence(opt_rf, top_features, X)
 

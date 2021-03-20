@@ -18,7 +18,7 @@ def plot_permutation_feature_importances(rf, X, y, num_top_features=10):
 
     ax.set(ylabel='')
     ax.tick_params(axis='both', which='major', labelsize=11.5)
-    plt.title(f"Feature Importances (Top {num_top_features})", fontsize=20)
+    # plt.title(f"Feature Importances (Top {num_top_features})", fontsize=20)
     plt.show()
     return X.columns.array[sorted_idx]
 
