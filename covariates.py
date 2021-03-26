@@ -1,6 +1,6 @@
 import pandas as pd
 
-from config import in_path
+from config import in_path, out_path
 
 
 pd.set_option('display.max_columns', 100)
@@ -26,5 +26,9 @@ def get_covariates():
 
 if __name__ == "__main__":
     df = get_covariates()
-    print(df.head())
+    df_ages = df.filter(regex='age', axis=1)
+    df_ages.index = df['location']
+    df_ages.to_csv(out_path + "covid_dec_proc.csv")
+    # print(df.head())
+
 

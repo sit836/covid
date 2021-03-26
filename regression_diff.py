@@ -27,7 +27,6 @@ def generate_xy(file_Rs, file_latest_combined_proc):
     th = 0.10
     missing_ratio = df_merged[X_raw.columns].isnull().sum().sort_values(ascending=False) / df_merged.shape[0]
     cols_to_keep = missing_ratio[(missing_ratio < th)].index.tolist()
-    # X = df_merged[cols_to_keep].select_dtypes(include="number").fillna(-1)
     X = df_merged[cols_to_keep].select_dtypes(include="number").fillna(df_merged[cols_to_keep].median())
     return X, diff
 
