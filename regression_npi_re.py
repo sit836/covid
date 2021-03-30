@@ -9,9 +9,10 @@ from sklearn import preprocessing
 from sklearn import linear_model
 from sklearn.metrics import r2_score
 from sklearn.linear_model import LinearRegression
+import numpy as np
 
 from config import in_path, out_path
-from utils import plot_permutation_feature_importances, plot_pred_scatter
+from utils import plot_permutation_feature_importances, plot_pred_scatter, plot_shap_force_plot
 
 pd.set_option('display.max_columns', 100)
 
@@ -43,6 +44,22 @@ def fit_predict(model, X, diff):
     return model.predict(X)
 
 
+def plot_corr(corr):
+    # Generate a mask for the upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+
+    # Set up the matplotlib figure
+    f, ax = plt.subplots(figsize=(11, 9))
+
+    # Generate a custom diverging colormap
+    cmap = sns.diverging_palette(230, 20, as_cmap=True)
+
+    # Draw the heatmap with the mask and correct aspect ratio
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
+                square=True, linewidths=.5, cbar_kws={"shrink": .5})
+    plt.show()
+
+
 file_Rs = "Rs.csv"
 file_latest_combined = "OxCGRT_latest_combined_proc.csv"
 df = pd.read_csv(in_path + file_latest_combined)
@@ -70,7 +87,11 @@ mse_rf = mean_squared_error(y, pred_rf)
 r2_rf = opt_rf.score(X, y)
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
-plot_permutation_feature_importances(opt_rf, X, y)
+
+imp_features = plot_permutation_feature_importances(opt_rf, X, y)
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 
-plot_pred_scatter(pred_rf, pred_lasso, y, mse_rf, mse_lasso, r2_rf, r2_lasso, baseline_label="LASSO")
+# plot_pred_scatter(pred_rf, pred_lasso, y, mse_rf, mse_lasso, r2_rf, r2_lasso, baseline_label="LASSO")
+
+# corr_kendall = pd.concat([y, X[imp_features]], axis=1).corr(method='kendall')
+# plot_corr(corr_kendall)

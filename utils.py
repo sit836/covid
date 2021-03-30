@@ -16,6 +16,7 @@ def plot_permutation_feature_importances(rf, X, y, num_top_features=10):
     sorted_idx = np.argsort(perm_importance.importances_mean)[::-1][:num_top_features]
     ax = sns.barplot(x=perm_importance.importances_mean[sorted_idx], y=X.columns.array[sorted_idx])
 
+    ax.set_xlabel('Feature contribution', fontsize=15)
     ax.set(ylabel='')
     ax.tick_params(axis='both', which='major', labelsize=11.5)
     # plt.title(f"Feature Importances (Top {num_top_features})", fontsize=20)
