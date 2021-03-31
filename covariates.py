@@ -27,7 +27,9 @@ def get_covariates():
 if __name__ == "__main__":
     df = get_covariates()
     df_ages = df.filter(regex='age', axis=1)
+    df_ages = df_ages.drop(columns=["median_age"])
     df_ages.index = df['location']
+    df_ages.columns = df_ages.columns.str.capitalize()
     df_ages.to_csv(out_path + "covid_dec_proc.csv")
     # print(df.head())
 

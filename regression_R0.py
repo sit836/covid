@@ -106,7 +106,13 @@ r2_rf = opt_rf.score(X, y)
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
 
-#
+top_features = plot_permutation_feature_importances(opt_rf, X, y, num_top_features=10)
+# plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
+# plot_correlation_matrix(X[top_features])
+# plot_Friedman_partial_dependence(opt_rf, top_features, X)
+# plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols, baseline_label="OLS")
+
+# Use the fitted random forest making predictions on the 2nd wave
 X_star = X.merge(df_temp_prec[['country', 'temp_2nd_wave', 'prec_2nd_wave']], how="inner", left_index=True,
                  right_on="country")
 countries_star = X_star['country']
@@ -116,15 +122,5 @@ r0_hat = pd.Series(pred_rf_star, index=countries_star)
 
 re_hat = create_Rs(df_merged, r0_hat)
 mse_rf_star = mean_squared_error(y_star, re_hat)
-
 print("Mean squared error for random forest: ", mse_rf_star)
 print("R^2 for for random forest: ", r2_score(y_star, re_hat))
-
-#
-top_features = plot_permutation_feature_importances(opt_rf, X, y, num_top_features=15)
-
-# plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
-# plot_correlation_matrix(X[top_features])
-# plot_Friedman_partial_dependence(opt_rf, top_features, X)
-
-# plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols, baseline_label="OLS")

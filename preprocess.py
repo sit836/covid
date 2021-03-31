@@ -43,33 +43,33 @@ def encode_categorical_features(df):
     index = []
     data = []
 
-    name_dict = {"C1": "School_closing",
-             "C2": "Workplace_closing",
-             "C3": "Cancel_publ_events",
-             "C4": "Restr_on_gatherings",
-             "C5": "Close_publ_transport",
-             "C6": "Stay_at_home_reqs",
-             "C7": "Restr_on_internal_mvt",
-             "C8": "Int_travel_controls",
-             "E1": "Income_support",
-             "E2": "Debt/contract_relief",
-             "E3": "Fiscal_measures",
-             "E4": "Int_support",
-             "H1": "Publ_info_campaigns",
-             "H2": "Testing_policy",
-             "H3": "Contact_tracing",
-             "H4": "Emerg_invt_in_healthcare",
-             "H5": "Invt_in_vaccines",
-             "H6": "Facial_coverings",
-             "H7": "Vaccination_policy",
-             "H8": "Prot_of_elderly_people",
+    name_dict = {"C1": "School closing",
+             "C2": "Workplace closing",
+             "C3": "Cancel public events",
+             "C4": "Restrictions on\n gatherings",
+             "C5": "Close public transport",
+             "C6": "Stay at home\n requirements",
+             "C7": "Restrictions on\n internal movement",
+             "C8": "International travel\n controls",
+             "E1": "Income support",
+             "E2": "Debt/contract relief",
+             "E3": "Fiscal measures",
+             "E4": "International support",
+             "H1": "Public information\n campaigns",
+             "H2": "Testing policy",
+             "H3": "Contact tracing",
+             "H4": "Emergency investment in healthcare",
+             "H5": "Investment in vaccines",
+             "H6": "Facial coverings",
+             "H7": "Vaccination policy",
+             "H8": "Protection of elderly people",
              "M1": "Wildcard"}
 
     for col in df.columns[df.columns.str.contains("numeric")]:
         df_col_i = df[col]
         df_col_i = df_col_i.replace(0, np.NaN)
         data.append(df_col_i.value_counts())
-        index.append([name_dict[col.split("_")[0]] + "_" + str(x) for x in df_col_i.value_counts().index.tolist()])
+        index.append([name_dict[col.split("_")[0]] + " " + str(x) for x in df_col_i.value_counts().index.tolist()])
 
     return pd.Series(list(itertools.chain(*data)), index=list(itertools.chain(*index)))
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
                                         "ConfirmedDeaths", "ConfirmedCases"])
     result_df = result_df[sorted(result_df.columns)]
 
-    cols = result_df.columns[result_df.columns.str.contains("_")]
+    cols = result_df.columns[result_df.columns.str.contains(" ")]
     result_df[cols] = result_df[cols].replace(np.NaN, 0)
 
     print(result_df.isnull().sum().sum())
