@@ -15,41 +15,129 @@ from temp_prec import add_temp_prec
 
 
 def remove_cols_with_high_missing_ratio(df_covariates, th):
+    """
+    Remove columns with high missing ratio.
+
+    Parameters
+    ----------
+    df_covariates: DataFrame
+        Dataframe of covariates
+    th: float
+        Threshold of missing ratio. Columns will be removed if the missing ratio is higher or equal to the threshold.
+
+    Returns
+    -------
+        Dataframe with missing ratio less than the threshold.
+    """
     missing_ratio = df_covariates.isnull().sum().sort_values(ascending=False) / df_covariates.shape[0]
     cols_to_keep = missing_ratio[(missing_ratio < th)].index.tolist()
     return df_covariates[cols_to_keep]
 
 
 def encode_cat_features(df, cat_cols):
+    """
+    Encode categorical covariates into numerical values.
+
+    Parameters
+    ----------
+    df: DataFrame
+    cat_cols: list
+        List of categorical covariates.
+    """
     for cat_col in cat_cols:
         df[cat_col] = df[cat_col].astype('category')
         df[cat_col] = df[cat_col].cat.codes
 
 
 def generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_dec_proc, cols_to_remove):
+    """
+    Generate covariates and response variables.
+
+    Parameters
+    ----------
+    df_fitting_results: DataFrame
+        DataFrame of fitting results.
+    df_covariates: DataFrame
+        DataFrame of covariates.
+    df_temp_prec: DataFrame
+        DataFrame of temperature and precipitation.
+    df_dec_proc: DataFrame
+        DataFrame of processed December data
+    cols_to_remove: list
+        List of variable names to be removed.
+
+    Returns
+    -------
+        DataFrame of covariates.
+        Growth rate R0 in the first wave.
+        Growth rate RE in the second wave.
+    """
     df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
     df_merged = df_merged.merge(df_dec_proc, how="left", left_on="country", right_on="location")
     df_merged = df_merged.merge(df_temp_prec, how="inner", on="country")
     df_merged.index = df_merged["country"]
-
-    print(df_merged.isnull().sum().sum(), df_merged.shape)
-
     return df_merged.fillna(df_merged.median()).drop(columns=cols_to_remove), df_merged["R0"], df_merged["RE"]
 
 
 def search_opt_model(X, y, model, param_grid):
+    """
+    Find an optimal model with the minimum cross-validation error via grid search.
+
+    Parameters
+    ----------
+    X: DataFrame
+        Design matrix
+    y: Series
+        Response variable.
+    model: Regressor
+    param_grid: dictionary
+        List of hyperparameters with grids.
+
+    Returns
+    ----------
+        Hyperparameter with the minimum cross-validation error.
+    """
     regressor = GridSearchCV(model, param_grid, cv=10)
     regressor.fit(X, y)
     print(regressor.best_estimator_)
     return regressor.best_estimator_
 
 
-def fit_predict(model, X, diff):
-    model.fit(X, diff)
+def fit_predict(model, X, y):
+    """
+    Fit a regression model and make predictions.
+
+    Parameters
+    ----------
+    model: regressor
+    X: DataFrame
+        Design matrix.
+    y: Series
+        Response varianle.
+
+    Returns
+    ----------
+    Predictions on X.
+    """
+    model.fit(X, y)
     return model.predict(X)
 
 
 def create_Rs(df_merged, R0_hat):
+    """
+    Generate growth rates data.
+
+    Parameters
+    ----------
+    df_merged: DataFrame
+        Merged data.
+    R0_hat: Series
+        Estimated growth rate R0.
+
+    Returns
+    ----------
+        Series of estimated growth rate RE.
+    """
     def compute_susceptible_frac(pop, num_sick):
         return (pop - num_sick) / pop
 
