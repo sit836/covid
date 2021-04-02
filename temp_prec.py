@@ -1,10 +1,20 @@
 import pandas as pd
 
-from config import in_path, out_path, cases_file_name, temp_file_name, prec_file_name
-from peak_finding import get_1st_2nd_waves
+from config import in_path, temp_file_name, prec_file_name
 
 
 def get_2020_data(df):
+    """
+    Extract 2020 data.
+
+    Parameters
+    ----------
+    df: DataFrame
+
+    Returns
+    ----------
+    The extracted 2020 data
+    """
     df_2020 = None
     num_month = 12
 
@@ -19,6 +29,22 @@ def get_2020_data(df):
 
 
 def get_temp_or_prec(df_temp_prec, df_waves, var_name):
+    """
+    Get temperature or precipitation in the first and second waves.
+
+    Parameters
+    ----------
+    df_temp_prec: DataFrame
+        dataframe of temerature and precipitation
+    df_waves: DataFrame
+        dataframe of waves
+    var_name: {"temp", "prec"}, string
+        a variable telling the data is temerature or precipitation
+
+    Returns
+    ----------
+        the processed dataframe
+    """
     result_df = pd.DataFrame(columns=['country', f'{var_name}_1st_wave', f'{var_name}_2nd_wave'])
     common_countries = list(set(df_temp_prec["Country"].unique()).intersection(df_waves["country"].unique()))
 
@@ -45,17 +71,45 @@ def get_temp_or_prec(df_temp_prec, df_waves, var_name):
 
 
 def append_months(waves_df):
+    """
+    Append months to the data.
+
+    Parameters
+    ----------
+    waves_df: DataFrame
+        dataframe of waves
+    """
     for col in waves_df.filter(like="_").columns:
         waves_df[f"{col}_month"] = waves_df[col].str.split("-", n=2, expand=True)[1].astype(int)
 
 
 def read_data(file_name):
+    """
+    Read raw data.
+
+    Parameters
+    ----------
+    file_name: string
+        file name
+
+    Returns
+    ----------
+    the processed dataset
+    """
     df = pd.read_csv(in_path + file_name)
     df["Month"] = df["Statistics"].str.split(" ", n=1, expand=True)[0]
     return df
 
 
 def add_temp_prec():
+    """
+    Add temerature and precipitation to waves dataset.
+
+    Returns
+    ----------
+    the merged temerature and precipitation dataset
+    the processed waves
+    """
     df_waves = pd.read_csv(in_path + "waves.csv")
     append_months(df_waves)
 

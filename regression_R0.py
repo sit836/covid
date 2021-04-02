@@ -27,7 +27,7 @@ def remove_cols_with_high_missing_ratio(df_covariates, th):
 
     Returns
     -------
-        Dataframe with missing ratio less than the threshold.
+        Dataframe with missing ratio less than the threshold
     """
     missing_ratio = df_covariates.isnull().sum().sort_values(ascending=False) / df_covariates.shape[0]
     cols_to_keep = missing_ratio[(missing_ratio < th)].index.tolist()
@@ -42,7 +42,7 @@ def encode_cat_features(df, cat_cols):
     ----------
     df: DataFrame
     cat_cols: list
-        List of categorical covariates.
+        List of categorical covariates
     """
     for cat_col in cat_cols:
         df[cat_col] = df[cat_col].astype('category')
@@ -56,21 +56,21 @@ def generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_dec_proc, co
     Parameters
     ----------
     df_fitting_results: DataFrame
-        DataFrame of fitting results.
+        DataFrame of fitting results
     df_covariates: DataFrame
-        DataFrame of covariates.
+        DataFrame of covariates
     df_temp_prec: DataFrame
-        DataFrame of temperature and precipitation.
+        DataFrame of temperature and precipitation
     df_dec_proc: DataFrame
         DataFrame of processed December data
     cols_to_remove: list
-        List of variable names to be removed.
+        List of variable names to be removed
 
     Returns
     -------
-        DataFrame of covariates.
-        Growth rate R0 in the first wave.
-        Growth rate RE in the second wave.
+        DataFrame of covariates
+        Growth rate R0 in the first wave
+        Growth rate RE in the second wave
     """
     df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
     df_merged = df_merged.merge(df_dec_proc, how="left", left_on="country", right_on="location")
@@ -88,14 +88,14 @@ def search_opt_model(X, y, model, param_grid):
     X: DataFrame
         Design matrix
     y: Series
-        Response variable.
+        Response variable
     model: Regressor
     param_grid: dictionary
-        List of hyperparameters with grids.
+        List of hyperparameters with grids
 
     Returns
     ----------
-        Hyperparameter with the minimum cross-validation error.
+        Hyperparameter with the minimum cross-validation error
     """
     regressor = GridSearchCV(model, param_grid, cv=10)
     regressor.fit(X, y)
@@ -111,13 +111,13 @@ def fit_predict(model, X, y):
     ----------
     model: regressor
     X: DataFrame
-        Design matrix.
+        Design matrix
     y: Series
-        Response varianle.
+        Response varianle
 
     Returns
     ----------
-    Predictions on X.
+    Predictions on X
     """
     model.fit(X, y)
     return model.predict(X)
@@ -130,13 +130,13 @@ def create_Rs(df_merged, R0_hat):
     Parameters
     ----------
     df_merged: DataFrame
-        Merged data.
+        Merged data
     R0_hat: Series
-        Estimated growth rate R0.
+        Estimated growth rate R0
 
     Returns
     ----------
-        Series of estimated growth rate RE.
+        Series of estimated growth rate RE
     """
     def compute_susceptible_frac(pop, num_sick):
         return (pop - num_sick) / pop
@@ -198,7 +198,7 @@ top_features = plot_permutation_feature_importances(opt_rf, X, y, num_top_featur
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 # plot_correlation_matrix(X[top_features])
 # plot_Friedman_partial_dependence(opt_rf, top_features, X)
-# plot_pred_scatter(pred_rf, pred_ols, y, mse_rf, mse_ols, r2_rf, r2_ols, baseline_label="OLS")
+# plot_pred_scatter(pred_rf, pred_ols, y, baseline_label="OLS")
 
 # Use the fitted random forest making predictions on the 2nd wave
 X_star = X.merge(df_temp_prec[['country', 'temp_2nd_wave', 'prec_2nd_wave']], how="inner", left_index=True,

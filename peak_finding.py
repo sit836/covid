@@ -10,10 +10,6 @@ import itertools
 from config import in_path, out_path
 
 
-def get_smoothed_data(s, window_width):
-    return s.rolling(window=window_width, center=True, min_periods=(window_width // 2)).mean()
-
-
 def make_plot(df_i, country, peaks, bottoms, cases_smoothed):
     dates = df_i["Date"].str.split("-", n=1, expand=True)[1]
     fig = plt.figure()
@@ -46,6 +42,43 @@ def get_tail_peaks(cases_smoothed, peaks, tail_length=10):
 
 def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, distance=60, window_width=28,
                           generate_plot=False):
+    """
+    Compute peaks and bottoms in the growth rate curves.
+
+    Parameters
+    ----------
+    df: DataFrame
+    height_threshold: float
+        Threshold for the required height of peaks. See scipy.signal.find_peaks for details.
+    prominence_threshold: float
+        Threshold for the required prominence of peaks. See scipy.signal.find_peaks for details.
+    distance: float
+        Required minimal horizontal distance (>= 1) in samples between neighbouring peaks.
+    window_width: int
+        width of the moving window
+    generate_plot: bool
+        If True, make a plot of growth rates for each country with the estimated peaks and bottoms
+
+    Returns
+    ----------
+    A dataFrame with country names, start/peak/bottom dates
+    """
+    def get_smoothed_data(s, window_width):
+        """
+        Get a moving average smoothed data.
+
+        Parameters
+        ----------
+        s: Series
+        window_width: int
+            width of the moving window
+
+        Returns
+        ----------
+        the smoothed time series
+        """
+        return s.rolling(window=window_width, center=True, min_periods=(window_width // 2)).mean()
+
     result = {}
 
     for country in tqdm(df["Entity"].unique()):
@@ -71,6 +104,19 @@ def get_peaks_and_bottoms(df, height_threshold=0.20, prominence_threshold=0.10, 
 
 
 def get_1st_2nd_waves(df, generate_plot):
+    """
+    Get the first and second waves for every country.
+
+    Parameters
+    ----------
+    df: DataFrame
+    generate_plot: bool
+        If True, make a plot of growth rates for each country with the estimated peaks and bottoms
+
+    Returns
+    ----------
+    A dataframe with country names, estimated start/end dates for the first and second waves.
+    """
     result_df = pd.DataFrame(columns=['country', '1st_start', '1st_end', '2nd_start', '2nd_end'])
     peaks_and_bottoms_dict = get_peaks_and_bottoms(df, generate_plot=generate_plot)
 
@@ -120,13 +166,17 @@ if __name__ == "__main__":
     df_waves.loc[df_waves["country"] == "Kazakhstan", "2nd_start"] = "2020-10-10"
 
     df_to_add = pd.DataFrame.from_dict({'country': ['EI Salvador', 'Estonia', 'Iceland', 'Iran', 'Kenya', 'Mali'], \
-                                '1st_start': ['2020-05-04', '2020-03-17', '2020-03-19', '2020-02-27', '2020-05-07',
-                                              '2020-05-28'], \
-                                '1st_end': ['2020-08-02', '2020-04-01', '2020-04-03', '2020-03-28', '2020-08-05',
-                                            '2020-06-12'], \
-                                '2nd_start': ['2020-09-01', '2020-09-13', '2020-08-31', '2020-08-25', '2020-09-19',
-                                              '2020-10-25'], \
-                                '2nd_end': ['2020-11-30', '2020-11-27', '2020-10-15', '2020-11-23', '2020-11-18',
-                                            '2020-11-24']})
+                                        '1st_start': ['2020-05-04', '2020-03-17', '2020-03-19', '2020-02-27',
+                                                      '2020-05-07',
+                                                      '2020-05-28'],
+                                        '1st_end': ['2020-08-02', '2020-04-01', '2020-04-03', '2020-03-28',
+                                                    '2020-08-05',
+                                                    '2020-06-12'],
+                                        '2nd_start': ['2020-09-01', '2020-09-13', '2020-08-31', '2020-08-25',
+                                                      '2020-09-19',
+                                                      '2020-10-25'],
+                                        '2nd_end': ['2020-11-30', '2020-11-27', '2020-10-15', '2020-11-23',
+                                                    '2020-11-18',
+                                                    '2020-11-24']})
     df_waves = pd.concat([df_waves, df_to_add])
     df_waves.to_csv(out_path + "df_waves.csv", index=False)

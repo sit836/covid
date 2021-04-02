@@ -7,6 +7,13 @@ pd.set_option('display.max_columns', 100)
 
 
 def get_covariates():
+    """
+    Get the desired covariates by removing unwanted columns.
+
+    Returns
+    ----------
+    the covariates dataframe
+    """
     df = pd.read_csv(in_path + "covid_dec.csv")
     df = df[(df["location"] != "International") & (df["location"] != "World")]
 

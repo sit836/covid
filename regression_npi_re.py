@@ -18,6 +18,23 @@ pd.set_option('display.max_columns', 100)
 
 
 def generate_xy(file_Rs, file_latest_combined_proc):
+    """
+    Generate covariates and response variables.
+
+    Parameters
+    ----------
+    file_Rs: string
+        file storing the growth rates
+    file_latest_combined_proc: string
+        file name of the processed OxCGRT_latest_combined dataset
+
+    Returns
+    ----------
+    X: DataFrame
+        design matrix
+    re: Series
+        the growth rate in the second wave
+    """
     df_rs = pd.read_csv(out_path + file_Rs)
     X_raw = pd.read_csv(in_path + file_latest_combined_proc)
     df_merged = df_rs.merge(X_raw, on="country")
@@ -33,6 +50,23 @@ def generate_xy(file_Rs, file_latest_combined_proc):
 
 
 def search_opt_model(X, y, model, param_grid):
+    """
+    Find an optimal model with the minimum cross-validation error via grid search.
+
+    Parameters
+    ----------
+    X: DataFrame
+        Design matrix
+    y: Series
+        Response variable
+    model: Regressor
+    param_grid: dictionary
+        List of hyperparameters with grids
+
+    Returns
+    ----------
+        Hyperparameter with the minimum cross-validation error
+    """
     regressor = GridSearchCV(model, param_grid, cv=10)
     regressor.fit(X, y)
     print(regressor.best_estimator_)
@@ -40,11 +74,34 @@ def search_opt_model(X, y, model, param_grid):
 
 
 def fit_predict(model, X, diff):
+    """
+    Fit a regression model and make predictions.
+
+    Parameters
+    ----------
+    model: regressor
+    X: DataFrame
+        Design matrix
+    y: Series
+        Response varianle
+
+    Returns
+    ----------
+    Predictions on X
+    """
     model.fit(X, diff)
     return model.predict(X)
 
 
 def plot_corr(corr):
+    """
+    Plot correlation matrix.
+
+    Parameters
+    ----------
+    corr: DataFrame
+        correlation matrix
+    """
     # Generate a mask for the upper triangle
     mask = np.triu(np.ones_like(corr, dtype=bool))
 

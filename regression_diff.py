@@ -17,6 +17,23 @@ pd.set_option('display.max_columns', 100)
 
 
 def generate_xy(file_Rs, file_latest_combined_proc):
+    """
+    Generate covariates and response variables.
+
+    Parameters
+    ----------
+    file_Rs: string
+        file storing the growth rates
+    file_latest_combined_proc: string
+        file name of the processed OxCGRT_latest_combined dataset
+
+    Returns
+    ----------
+    X: DataFrame
+        design matrix
+    diff: Series
+        difference between the predicted RE and the actual RE
+    """
     df_rs = pd.read_csv(out_path + file_Rs)
     X_raw = pd.read_csv(in_path + file_latest_combined_proc)
     df_merged = df_rs.merge(X_raw, on="country")
@@ -32,6 +49,23 @@ def generate_xy(file_Rs, file_latest_combined_proc):
 
 
 def search_opt_model(X, y, model, param_grid):
+    """
+    Find an optimal model with the minimum cross-validation error via grid search.
+
+    Parameters
+    ----------
+    X: DataFrame
+        Design matrix
+    y: Series
+        Response variable
+    model: Regressor
+    param_grid: dictionary
+        List of hyperparameters with grids
+
+    Returns
+    ----------
+        Hyperparameter with the minimum cross-validation error
+    """
     regressor = GridSearchCV(model, param_grid, cv=10)
     regressor.fit(X, y)
     print(regressor.best_estimator_)
@@ -39,6 +73,21 @@ def search_opt_model(X, y, model, param_grid):
 
 
 def fit_predict(model, X, diff):
+    """
+    Fit a regression model and make predictions.
+
+    Parameters
+    ----------
+    model: regressor
+    X: DataFrame
+        Design matrix
+    y: Series
+        Response varianle
+
+    Returns
+    ----------
+    Predictions on X
+    """
     model.fit(X, diff)
     return model.predict(X)
 
@@ -73,4 +122,4 @@ print("R^2 for for random forest: ", r2_rf)
 plot_permutation_feature_importances(opt_rf, X, y)
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 
-plot_pred_scatter(pred_rf, pred_lasso, y, mse_rf, mse_lasso, r2_rf, r2_lasso, baseline_label="LASSO")
+plot_pred_scatter(pred_rf, pred_lasso, y, baseline_label="LASSO")

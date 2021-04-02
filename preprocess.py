@@ -5,65 +5,64 @@ import pandas as pd
 from tqdm import tqdm
 
 from config import in_path
-from covariates import get_covariates
-from temp_prec import add_temp_prec
-
 
 pd.set_option('display.max_columns', 100)
 
 
 def get_selected_cols(df):
+    """
+    Get the necessary column names from the dataframe.
+
+    Parameters
+    ----------
+    df: DataFrame
+
+    Returns
+    ----------
+    A list of column names
+    """
     cols_to_remove = df.columns[df.columns.str.endswith("combined")].tolist() + df.columns[
         df.columns.str.contains("ForDisplay")].tolist() + ["Date", "CountryCode", "RegionName",
                                                            "RegionCode"]
     return list(set(df.columns).difference(cols_to_remove))
 
 
-# def encode_categorical_features(df):
-#     index = []
-#     data = []
-#
-#     for col in df.columns[df.columns.str.contains("numeric")]:
-#         df_col_i = df[col]
-#         df_col_i = df_col_i.replace(0, np.NaN)
-#         freq_table = df_col_i.value_counts() / df_col_i.count()
-#         data.append(freq_table.values)
-#         index.append([col.split("_")[0] + "_" + str(x) for x in freq_table.index.tolist()])
-#
-#     return pd.Series(list(itertools.chain(*data)), index=list(itertools.chain(*index)))
-
-
-# def encode_categorical_features(df):
-#     cols = df.columns[df.columns.str.contains("numeric")]
-#     df_cat = df[cols].replace(0, np.NaN)
-#     return df_cat.median()
-
-
 def encode_categorical_features(df):
+    """
+    Convert categorical variables into their frequencies.
+
+    Parameters
+    ----------
+    df: DataFrame
+
+    Returns
+    ----------
+    The encoded data
+    """
     index = []
     data = []
 
     name_dict = {"C1": "School closing",
-             "C2": "Workplace closing",
-             "C3": "Cancel public events",
-             "C4": "Restrictions on\n gatherings",
-             "C5": "Close public transport",
-             "C6": "Stay at home\n requirements",
-             "C7": "Restrictions on\n internal movement",
-             "C8": "International travel\n controls",
-             "E1": "Income support",
-             "E2": "Debt/contract relief",
-             "E3": "Fiscal measures",
-             "E4": "International support",
-             "H1": "Public information\n campaigns",
-             "H2": "Testing policy",
-             "H3": "Contact tracing",
-             "H4": "Emergency investment in healthcare",
-             "H5": "Investment in vaccines",
-             "H6": "Facial coverings",
-             "H7": "Vaccination policy",
-             "H8": "Protection of elderly people",
-             "M1": "Wildcard"}
+                 "C2": "Workplace closing",
+                 "C3": "Cancel public events",
+                 "C4": "Restrictions on\n gatherings",
+                 "C5": "Close public transport",
+                 "C6": "Stay at home\n requirements",
+                 "C7": "Restrictions on\n internal movement",
+                 "C8": "International travel\n controls",
+                 "E1": "Income support",
+                 "E2": "Debt/contract relief",
+                 "E3": "Fiscal measures",
+                 "E4": "International support",
+                 "H1": "Public information\n campaigns",
+                 "H2": "Testing policy",
+                 "H3": "Contact tracing",
+                 "H4": "Emergency investment in healthcare",
+                 "H5": "Investment in vaccines",
+                 "H6": "Facial coverings",
+                 "H7": "Vaccination policy",
+                 "H8": "Protection of elderly people",
+                 "M1": "Wildcard"}
 
     for col in df.columns[df.columns.str.contains("numeric")]:
         df_col_i = df[col]
@@ -74,7 +73,18 @@ def encode_categorical_features(df):
     return pd.Series(list(itertools.chain(*data)), index=list(itertools.chain(*index)))
 
 
-def encode_numerical_features(df):
+def process_numerical_features(df):
+    """
+    Replace zeros in numerical features by NAN.
+
+    Parameters
+    ----------
+    df: DataFrame
+
+    Returns
+    ----------
+    Medians of numerical features
+    """
     cols = [col for col in df.columns if "combined" not in col]
     df_numeric = df[df[cols].select_dtypes(exclude="object").columns]
     df_numeric = df_numeric.replace(0, np.NaN)
@@ -82,11 +92,22 @@ def encode_numerical_features(df):
 
 
 def process_data(df):
+    """
+    Iterate through the list of countries and process categorical and numerical features.
+
+    Parameters
+    ----------
+    df: DataFrame
+
+    Returns
+    ----------
+    The processed DataFrame
+    """
     result_df = None
     for i, country_name in enumerate(tqdm(df["CountryName"].unique())):
         df_i = df[df["CountryName"] == country_name]
         cat_features = encode_categorical_features(df_i)
-        num_features = encode_numerical_features(df_i)
+        num_features = process_numerical_features(df_i)
         combined_features = pd.concat([pd.Series(country_name, index=["CountryName"]), cat_features, num_features])
 
         if i == 0:
@@ -113,7 +134,8 @@ if __name__ == "__main__":
 
     result_df = df_merged.drop(columns=["growth_rate 1st wave", "carry capacity 1st wave", "R squared 1st wave",
                                         "R0", "growth_rate 2nd wave", "carry capacity 2nd wave",
-                                        "R squared 2nd wave", "RE", "Initial cases-2nd wave", "Expected RE", "CountryName",
+                                        "R squared 2nd wave", "RE", "Initial cases-2nd wave", "Expected RE",
+                                        "CountryName",
                                         "ConfirmedDeaths", "ConfirmedCases"])
     result_df = result_df[sorted(result_df.columns)]
 
