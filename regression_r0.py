@@ -49,7 +49,7 @@ def encode_cat_features(df, cat_cols):
         df[cat_col] = df[cat_col].cat.codes
 
 
-def generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_dec_proc, cols_to_remove):
+def generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_age, cols_to_remove):
     """
     Generate covariates and response variables.
 
@@ -61,8 +61,8 @@ def generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_dec_proc, co
         DataFrame of covariates
     df_temp_prec: DataFrame
         DataFrame of temperature and precipitation
-    df_dec_proc: DataFrame
-        DataFrame of processed December data
+    df_age: DataFrame
+        Age information
     cols_to_remove: list
         List of variable names to be removed
 
@@ -73,7 +73,7 @@ def generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_dec_proc, co
         Growth rate RE in the second wave
     """
     df_merged = df_fitting_results.merge(df_covariates, how="left", left_on="country", right_on="Country")
-    df_merged = df_merged.merge(df_dec_proc, how="left", left_on="country", right_on="location")
+    df_merged = df_merged.merge(df_age, how="left", left_on="country", right_on="location")
     df_merged = df_merged.merge(df_temp_prec, how="inner", on="country")
     df_merged.index = df_merged["country"]
     return df_merged.fillna(df_merged.median()).drop(columns=cols_to_remove), df_merged["R0"], df_merged["RE"]
@@ -162,7 +162,7 @@ cols_to_remove = ['country', 'growth_rate 1st wave', 'carry capacity 1st wave',
 
 df_fitting_results = pd.read_csv(in_path + "data_fitting_results.csv")
 df_covariates = pd.read_csv(in_path + 'Dataset_Final03032021.csv')
-df_dec_proc = pd.read_csv(out_path + 'covid_dec_proc.csv')
+df_age = pd.read_csv(out_path + 'covid_dec_proc.csv')
 
 df_covariates = remove_cols_with_high_missing_ratio(df_covariates, th=0.10)
 df_temp_prec, df_waves = add_temp_prec()
@@ -173,7 +173,7 @@ df_merged.index = df_merged["country"]
 
 df_cases = pd.read_csv(in_path + "cases.csv")
 
-X, y, y_star = generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_dec_proc, cols_to_remove)
+X, y, y_star = generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_age, cols_to_remove)
 encode_cat_features(X, cat_cols)
 print("Shape of data: ", X.shape)
 

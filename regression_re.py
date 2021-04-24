@@ -1,23 +1,21 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import shap
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
 from sklearn import preprocessing
 from sklearn import linear_model
-from sklearn.metrics import r2_score
-from sklearn.linear_model import LinearRegression
 import numpy as np
 
 from config import in_path, out_path
-from utils import plot_permutation_feature_importances, plot_pred_scatter, plot_shap_force_plot
+from utils import plot_permutation_feature_importances, plot_pred_scatter
+from temp_prec import add_temp_prec
 
 pd.set_option('display.max_columns', 100)
 
 
-def generate_xy(file_Rs, file_latest_combined):
+def generate_xy(file_Rs, file_latest_combined, df_age, df_covariates, df_temp_prec, cols_to_remove):
     """
     Generate covariates and response variables.
 
@@ -27,6 +25,8 @@ def generate_xy(file_Rs, file_latest_combined):
         file storing the growth rates
     file_latest_combined: string
         file name of the processed OxCGRT_latest_combined dataset
+    df_age: DataFrame
+        Age information
 
     Returns
     ----------
@@ -38,11 +38,16 @@ def generate_xy(file_Rs, file_latest_combined):
     df_rs = pd.read_csv(out_path + file_Rs)
     X_raw = pd.read_csv(in_path + file_latest_combined)
     df_merged = df_rs.merge(X_raw, on="country")
+    df_merged = df_merged.merge(df_age, how="left", left_on="country", right_on="location")
+    df_merged = df_merged.merge(df_covariates, how="left", left_on="country", right_on="Country")
+    df_merged = df_merged.merge(df_temp_prec, how="left", on="country")
     df_merged.index = df_merged["country"]
-    re_hat, re = df_merged["RE_hat"], df_merged["RE"]
+    re = df_merged["RE"]
 
     th = 0.10
-    missing_ratio = df_merged[X_raw.columns].isnull().sum().sort_values(ascending=False) / df_merged.shape[0]
+    df_merged.drop(columns=cols_to_remove, inplace=True)
+
+    missing_ratio = df_merged.isnull().sum().sort_values(ascending=False) / df_merged.shape[0]
     cols_to_keep = missing_ratio[(missing_ratio < th)].index.tolist()
     X = df_merged[cols_to_keep].select_dtypes(include="number").fillna(df_merged[cols_to_keep].median())
     return X, re
@@ -116,17 +121,23 @@ def plot_corr(corr):
     plt.show()
 
 
+cols_to_remove = ['country', 'R0', 'RE', 'RE_hat', 'Country', 'Cases_CumTotal', 'CasesCum_per_millionPop',
+                  'Cases_newlyReported_last_7days', 'Deaths_CumTotal', 'Deaths_CumTotal_perMillionPop',
+                  'Deaths_newlyReported_last_7days', 'temp_1st_wave', 'prec_1st_wave', 'location']
 file_Rs = "Rs.csv"
 file_latest_combined = "OxCGRT_latest_combined_proc.csv"
 df_npi = pd.read_csv(in_path + file_latest_combined)
+df_covariates = pd.read_csv(in_path + 'Dataset_Final03032021.csv')
+df_age = pd.read_csv(out_path + 'covid_dec_proc.csv')
+df_temp_prec, _ = add_temp_prec()
 
-X, y = generate_xy(file_Rs, file_latest_combined)
+X, y = generate_xy(file_Rs, file_latest_combined, df_age, df_covariates, df_temp_prec, cols_to_remove)
 print("Shape of data: ", X.shape)
 
 # LASSO
 X_scaled = preprocessing.scale(X)
 lasso = linear_model.Lasso()
-opt_lasso = search_opt_model(X_scaled, y, lasso, param_grid={'alpha': [0.05, 0.1, 0.15]})
+opt_lasso = search_opt_model(X_scaled, y, lasso, param_grid={'alpha': [0.1, 0.3, 0.5, 0.7]})
 opt_lasso.fit(X_scaled, y)
 pred_lasso = opt_lasso.predict(X_scaled)
 mse_lasso = mean_squared_error(y, pred_lasso)
@@ -145,9 +156,3 @@ print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
 
 imp_features = plot_permutation_feature_importances(opt_rf, X, y)
-# plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
-
-# plot_pred_scatter(pred_rf, pred_lasso, y, mse_rf, mse_lasso, r2_rf, r2_lasso, baseline_label="LASSO")
-
-# corr_kendall = pd.concat([y, X[imp_features]], axis=1).corr(method='kendall')
-# plot_corr(corr_kendall)
