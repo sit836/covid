@@ -134,6 +134,8 @@ df_temp_prec, _ = add_temp_prec()
 X, y = generate_xy(file_Rs, file_latest_combined, df_age, df_covariates, df_temp_prec, cols_to_remove)
 print("Shape of data: ", X.shape)
 
+X.to_csv(out_path+"X_RE_temp.csv")
+
 # LASSO
 X_scaled = preprocessing.scale(X)
 lasso = linear_model.Lasso()
@@ -156,3 +158,5 @@ print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
 
 imp_features = plot_permutation_feature_importances(opt_rf, X, y)
+
+plot_pred_scatter(pred_rf, pred_lasso, y, "LASSO")
