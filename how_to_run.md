@@ -1,3 +1,5 @@
+# Steps to execute the scripts
+
 ## Association between R0 and CSD variables
 1. **RUN** covariates.py \
    **INPUTS**: covid_dec.csv \

@@ -20,4 +20,4 @@ You will need:
 │   ├── output
 ```
 
-## [Workflow](https://github.com/sit836/covid/tree/master/workflow.md)
+## [How to run scripts](https://github.com/sit836/covid/tree/master/how_to_run.md)
