@@ -6,7 +6,8 @@
    **OUTPUTS**: covid_dev_proc.csv
 2. **RUN** regression_r0.py \
    **INPUTS**: data_fitting_result.csv, Dataset_Final03032021.csv, covid_dec_proc.csv, cases.csv \
-   **OUTPUTS**: Rs.csv
+   **OUTPUTS**: Rs.csv \
+* The output file Rs.csv covers the content in **Section 3.4** "Using RF to predict control reproduction number for the second wave Rc_hat" and there is no separate script for this part.
    
 ## Hypothesis testing of difference between two means Rc and Rc_hat
 1. **RUN** hypo_test.py \
