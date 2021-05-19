@@ -134,8 +134,6 @@ df_temp_prec, _ = add_temp_prec()
 X, y = generate_xy(file_Rs, file_latest_combined, df_age, df_covariates, df_temp_prec, cols_to_remove)
 print("Shape of data: ", X.shape)
 
-X.to_csv(out_path+"X_RE_temp.csv")
-
 # LASSO
 X_scaled = preprocessing.scale(X)
 lasso = linear_model.Lasso()

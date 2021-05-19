@@ -12,7 +12,7 @@ def get_covariates():
 
     Returns
     ----------
-    the covariates dataframe
+    covariates dataframe
     """
     df = pd.read_csv(in_path + "covid_dec.csv")
     df = df[(df["location"] != "International") & (df["location"] != "World")]
@@ -38,6 +38,3 @@ if __name__ == "__main__":
     df_ages.index = df['location']
     df_ages.columns = df_ages.columns.str.capitalize()
     df_ages.to_csv(out_path + "covid_dec_proc.csv")
-    # print(df.head())
-
-

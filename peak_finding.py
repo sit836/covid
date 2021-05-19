@@ -160,8 +160,6 @@ if __name__ == "__main__":
     df = df[df["Entity"].isin(countries_with_2nd_wave)]
     df_waves = get_1st_2nd_waves(df, generate_plot=True)
 
-    print(df_waves.head())
-
     df_waves.loc[df_waves["country"] == "Israel", "2nd_end"] = "2020-9-29"
     df_waves.loc[df_waves["country"] == "Kazakhstan", "2nd_start"] = "2020-10-10"
 
