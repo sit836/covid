@@ -21,4 +21,4 @@ You will need:
 ```
 
 ## Examples
-* [Association between R0 and CSD variables](https://github.com/sit836/covid/master/examples/regression_r0.md)
+* [Association between R0 and CSD variables](https://github.com/sit836/covid/tree/master/examples)
