@@ -7,7 +7,7 @@ You will need:
 * python (>= 3.8)
 
 ### Directory structure
-```bash
+```
 ├── project
 │   ├── data
 │   │   ├── cases.csv
@@ -20,5 +20,4 @@ You will need:
 │   ├── output
 ```
 
-## Examples
-* [Association between R0 and CSD variables](https://github.com/sit836/covid/tree/master/examples)
+## [Workflow](https://github.com/sit836/covid/tree/master/workflow.md)
