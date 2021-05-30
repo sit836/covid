@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 import pandas as pd
-
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
@@ -138,6 +136,7 @@ def create_Rs(df_merged, R0_hat):
     ----------
         Series of estimated growth rate RE
     """
+
     def compute_susceptible_frac(pop, num_sick):
         return (pop - num_sick) / pop
 
@@ -176,6 +175,7 @@ df_cases = pd.read_csv(in_path + "cases.csv")
 X, y, y_star = generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_age, cols_to_remove)
 encode_cat_features(X, cat_cols)
 print("Shape of data: ", X.shape)
+pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_r0.csv", index=False)
 
 # OLS
 lr = LinearRegression(fit_intercept=True).fit(X, y)
@@ -193,6 +193,17 @@ mse_rf = mean_squared_error(y, pred_rf)
 r2_rf = opt_rf.score(X, y)
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
+
+print(X.columns)
+X.rename(columns={"LRI_rate2019": "LRI Rate",
+                  "CDNeoMatNutrition_2019": "CDNeoMatNutrition",
+                  "Physicians_per1000": "Physicians_per_1000",
+                  "Cancer_2017": "Cancer",
+                  "UV_radiation2004": "UV_Radiation",
+                  "RaisedBP_2015": "Raised_BP",
+                  "TB_incidence2019": "TB_Incidence",
+                  "Cardiovasc_death_rate": "Cardiovasc_\ndeath_rate"
+                  }, inplace=True)
 
 top_features = plot_permutation_feature_importances(opt_rf, X, y, num_top_features=10)
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)

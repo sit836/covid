@@ -1,14 +1,9 @@
-import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
-import shap
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
 from sklearn import preprocessing
 from sklearn import linear_model
-from sklearn.metrics import r2_score
-from sklearn.linear_model import LinearRegression
 
 from config import in_path, out_path
 from utils import plot_permutation_feature_importances, plot_pred_scatter
@@ -98,6 +93,7 @@ df = pd.read_csv(in_path + file_latest_combined)
 
 X, y = generate_xy(file_Rs, file_latest_combined)
 print("Shape of data: ", X.shape)
+pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_diff.csv", index=False)
 
 # LASSO
 X_scaled = preprocessing.scale(X)
@@ -119,7 +115,13 @@ mse_rf = mean_squared_error(y, pred_rf)
 r2_rf = opt_rf.score(X, y)
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
+
+print(X.columns)
+X.rename(columns={"Debt/contract relief 2.0": "Debt/contract\n relief 2.0",
+                  "Workplace closing 0.5": "Workplace\n closing 0.5",
+                  }, inplace=True)
+
 plot_permutation_feature_importances(opt_rf, X, y)
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
 
-plot_pred_scatter(pred_rf, pred_lasso, y, baseline_label="LASSO")
+# plot_pred_scatter(pred_rf, pred_lasso, y, baseline_label="LASSO")

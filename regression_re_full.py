@@ -133,6 +133,7 @@ df_temp_prec, _ = add_temp_prec()
 
 X, y = generate_xy(file_Rs, file_latest_combined, df_age, df_covariates, df_temp_prec, cols_to_remove)
 print("Shape of data: ", X.shape)
+pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_re_full.csv", index=False)
 
 # LASSO
 X_scaled = preprocessing.scale(X)
@@ -155,6 +156,14 @@ r2_rf = opt_rf.score(X, y)
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
 
+print(X.columns)
+X.rename(columns={"BodyMassIndex2016": "Body_Mass_Index",
+                  "Diabetes2019": "Diabetes",
+                  "LRI_rate2019": "LRI_Rate",
+                  "UV_radiation2004": "UV_Radiation",
+                  "PM25_Polution2017": "PM2.5_Pollution"
+                  }, inplace=True)
+
 imp_features = plot_permutation_feature_importances(opt_rf, X, y)
 
-plot_pred_scatter(pred_rf, pred_lasso, y, "LASSO")
+# plot_pred_scatter(pred_rf, pred_lasso, y, "LASSO")

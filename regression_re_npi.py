@@ -122,6 +122,7 @@ df_npi = pd.read_csv(in_path + file_latest_combined)
 
 X, y = generate_xy(file_Rs, file_latest_combined)
 print("Shape of data: ", X.shape)
+pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_re_npi.csv", index=False)
 
 # LASSO
 X_scaled = preprocessing.scale(X)
@@ -143,6 +144,13 @@ mse_rf = mean_squared_error(y, pred_rf)
 r2_rf = opt_rf.score(X, y)
 print("Mean squared error for random forest: ", mse_rf)
 print("R^2 for for random forest: ", r2_rf)
+
+print(X.columns)
+X.rename(columns={"Cancel public events 2.0": "Cancel public\n events 2.0",
+                  "Debt/contract relief 2.0": "Debt/contract\n relief 2.0",
+                  "Restrictions on \n internal movement 1.0": "Restrictions on inter\n-nal movement 1.0",
+                  "Close public transport 1.0": "Close public\n transport 1.0"
+                  }, inplace=True)
 
 imp_features = plot_permutation_feature_importances(opt_rf, X, y)
 # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)

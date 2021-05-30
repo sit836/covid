@@ -4,6 +4,7 @@ from sklearn.inspection import plot_partial_dependence
 from sklearn.inspection import permutation_importance
 import matplotlib.pyplot as plt
 
+from titlecase import titlecase
 import seaborn as sns
 import shap
 
@@ -28,11 +29,11 @@ def plot_permutation_feature_importances(rf, X, y, num_top_features=10):
     """
     perm_importance = permutation_importance(rf, X, y)
     sorted_idx = np.argsort(perm_importance.importances_mean)[::-1][:num_top_features]
-    ax = sns.barplot(x=perm_importance.importances_mean[sorted_idx], y=X.columns.str.replace("_", " ").array[sorted_idx])
-
-    ax.set_xlabel('Feature contribution', fontsize=15)
+    var_names = [titlecase(s) for s in X.columns.str.replace("_", " ").array[sorted_idx]]
+    ax = sns.barplot(x=perm_importance.importances_mean[sorted_idx], y=var_names)
+    ax.set_xlabel('Feature Contribution', fontsize=15)
     ax.set(ylabel='')
-    ax.tick_params(axis='both', which='major', labelsize=11.5)
+    ax.tick_params(axis='both', which='major', labelsize=15)
     plt.show()
     return X.columns.array[sorted_idx]
 
