@@ -3,7 +3,9 @@ import pandas as pd
 from sklearn.inspection import plot_partial_dependence
 from sklearn.inspection import permutation_importance
 import matplotlib.pyplot as plt
+import plotly.express as px
 
+from config import in_path
 from titlecase import titlecase
 import seaborn as sns
 import shap
@@ -157,3 +159,27 @@ def get_cum_cases(df_cases, df_fitting_results, df_waves):
             cumsum_i = 0
         cumcases.append([country, cumsum_i])
     return pd.DataFrame(cumcases, columns=['country', 'cum_cases_before_2nd_wave'])
+
+
+def plot_growth_rate(first_or_second_wave):
+    """
+    Plot the growth rates.
+
+    Parameters
+    ----------
+    first_or_second_wave: string
+    """
+    df = pd.read_csv(in_path + "data_fitting_results.csv")
+
+    if first_or_second_wave == "first":
+        name, num = "R0", "1st"
+    elif first_or_second_wave == "second":
+        name, num = "RE", "2nd"
+    else:
+        raise Exception(f"{first_or_second_wave} is not a valid option.")
+
+    fig = px.choropleth(df, locations="country",
+                        locationmode='country names', color=name,
+                        hover_name="country")
+    fig.update(layout_coloraxis_showscale=True)
+    fig.show()
