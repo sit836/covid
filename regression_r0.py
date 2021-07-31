@@ -175,7 +175,7 @@ df_cases = pd.read_csv(in_path + "cases.csv")
 X, y, y_star = generate_xy(df_fitting_results, df_covariates, df_temp_prec, df_age, cols_to_remove)
 encode_cat_features(X, cat_cols)
 print("Shape of data: ", X.shape)
-pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_r0.csv", index=False)
+pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_r0.csv")
 
 # OLS
 lr = LinearRegression(fit_intercept=True).fit(X, y)

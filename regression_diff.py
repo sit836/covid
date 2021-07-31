@@ -93,35 +93,35 @@ df = pd.read_csv(in_path + file_latest_combined)
 
 X, y = generate_xy(file_Rs, file_latest_combined)
 print("Shape of data: ", X.shape)
-pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_diff.csv", index=False)
+pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_diff.csv")
 
-# LASSO
-X_scaled = preprocessing.scale(X)
-lasso = linear_model.Lasso()
-opt_lasso = search_opt_model(X_scaled, y, lasso, param_grid={'alpha': [0.05, 0.1, 0.15]})
-opt_lasso.fit(X_scaled, y)
-pred_lasso = opt_lasso.predict(X_scaled)
-mse_lasso = mean_squared_error(y, pred_lasso)
-r2_lasso = opt_lasso.score(X_scaled, y)
-
-print("Mean squared error for LASSO: ", mse_lasso)
-print("R^2 for for LASSO: ", r2_lasso)
-
-# Random Forest
-rf = RandomForestRegressor(n_estimators=500, max_features="sqrt", oob_score=True, random_state=0)
-opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [2, 4]})
-pred_rf = fit_predict(opt_rf, X, y)
-mse_rf = mean_squared_error(y, pred_rf)
-r2_rf = opt_rf.score(X, y)
-print("Mean squared error for random forest: ", mse_rf)
-print("R^2 for for random forest: ", r2_rf)
-
-print(X.columns)
-X.rename(columns={"Debt/contract relief 2.0": "Debt/contract\n relief 2.0",
-                  "Workplace closing 0.5": "Workplace\n closing 0.5",
-                  }, inplace=True)
-
-plot_permutation_feature_importances(opt_rf, X, y)
-# plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
-
-# plot_pred_scatter(pred_rf, pred_lasso, y, baseline_label="LASSO")
+# # LASSO
+# X_scaled = preprocessing.scale(X)
+# lasso = linear_model.Lasso()
+# opt_lasso = search_opt_model(X_scaled, y, lasso, param_grid={'alpha': [0.05, 0.1, 0.15]})
+# opt_lasso.fit(X_scaled, y)
+# pred_lasso = opt_lasso.predict(X_scaled)
+# mse_lasso = mean_squared_error(y, pred_lasso)
+# r2_lasso = opt_lasso.score(X_scaled, y)
+#
+# print("Mean squared error for LASSO: ", mse_lasso)
+# print("R^2 for for LASSO: ", r2_lasso)
+#
+# # Random Forest
+# rf = RandomForestRegressor(n_estimators=500, max_features="sqrt", oob_score=True, random_state=0)
+# opt_rf = search_opt_model(X, y, rf, param_grid={'max_depth': [2, 4]})
+# pred_rf = fit_predict(opt_rf, X, y)
+# mse_rf = mean_squared_error(y, pred_rf)
+# r2_rf = opt_rf.score(X, y)
+# print("Mean squared error for random forest: ", mse_rf)
+# print("R^2 for for random forest: ", r2_rf)
+#
+# print(X.columns)
+# X.rename(columns={"Debt/contract relief 2.0": "Debt/contract\n relief 2.0",
+#                   "Workplace closing 0.5": "Workplace\n closing 0.5",
+#                   }, inplace=True)
+#
+# plot_permutation_feature_importances(opt_rf, X, y)
+# # plot_shap_force_plot(opt_rf, X, country_name="Canada", out_path=out_path)
+#
+# # plot_pred_scatter(pred_rf, pred_lasso, y, baseline_label="LASSO")

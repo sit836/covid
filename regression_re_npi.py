@@ -122,7 +122,7 @@ df_npi = pd.read_csv(in_path + file_latest_combined)
 
 X, y = generate_xy(file_Rs, file_latest_combined)
 print("Shape of data: ", X.shape)
-pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_re_npi.csv", index=False)
+pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_re_npi.csv")
 
 # LASSO
 X_scaled = preprocessing.scale(X)

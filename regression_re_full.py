@@ -133,7 +133,7 @@ df_temp_prec, _ = add_temp_prec()
 
 X, y = generate_xy(file_Rs, file_latest_combined, df_age, df_covariates, df_temp_prec, cols_to_remove)
 print("Shape of data: ", X.shape)
-pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_re_full.csv", index=False)
+pd.concat([y, X], axis=1).to_csv(out_path + "data_reg_re_full.csv")
 
 # LASSO
 X_scaled = preprocessing.scale(X)
