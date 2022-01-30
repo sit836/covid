@@ -1,12 +1,19 @@
-# The Impact of Non-PharmaceuticalInterventions on the Second Wave ofCOVID-19:  Insights from an ArtificialIntelligence-Based, Cross-Country Study (Code)
-Code to reproduce results of the paper: "The Impact of Non-PharmaceuticalInterventions on the Second Wave of COVID-19:  Insights from an ArtificialIntelligence-Based, Cross-Country Study".
+# Harnessing Artificial Intelligence to assess the impact of nonpharmaceutical interventions on the second wave of the Coronavirus Disease 2019 pandemic across the world
+
+This repository makes available the source code for the work: "Harnessing Artificial Intelligence to assess the impact
+of nonpharmaceutical interventions on the second wave of the Coronavirus Disease 2019 pandemic across the world",
+published with open access by Scientific Reports: "https://www.nature.com/articles/s41598-021-04731-5".
 
 ## Getting Started
-### Prerequisites 
+
+### Prerequisites
+
 You will need:
+
 * python (>= 3.8)
 
 ### Directory structure
+
 ```
 ├── project
 │   ├── data
